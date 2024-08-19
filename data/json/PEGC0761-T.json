@@ -1,0 +1,32 @@
+{
+    "modalidade": "treino",
+    "autor": "Juliano Keller Alvez",
+    "titulo": "FRAMEWORK ADAPTATIVO DE GESTÃO DO CONHECIMENTO PARA A APLICAÇÃO DA ISO 30401",
+    "tipo": "tese",
+    "area_de_concentracao": "Gestão do Conhecimento",
+    "ano_de_publicacao": 2023,
+    "local": "Florianópolis",
+    "orientador": "Prof.a Édis Mafra Lapolli, Dr a.",
+    "coorientador": "Prof. Neri dos Santos, Dr. e Prof. Roberto Carlos dos Santos Pacheco, Dr.",
+    "resumo": "A ISO 30401 é a norma internacional para sistemas de gestão do conhecimento. Não há nenhuma organização certificada por essa nova norma no Brasil, e poucas, até aqui, no mundo. Não há bibliografia, modelos ou roteiros que facilitem ou possibilitem um caminho para o uso dessa nova norma. Não obstante isso, a aplicação da gestão do conhecimento  (GC)  é um desafio nas organizações devido a diversos fatores, mas também se constitui em uma necessidade, visto que o conhecimento passou a ser o ativo mais importante no contexto dos negócios e precisa ser gerido de forma eficaz. Em seu objetivo geral, e ste trabalho visa a desenvolver um framework adaptativo de gestão do conhecimento para a aplicação da ISO 30401 nas organizações . Como objetivos específicos, espera -se identificar sistemas de gestão do conhecimento nas organizações; analisar os principais requisitos da ISO 30401 ligados à gestão do conhecimento; e aplicar o framework  desenvolvido em uma organização inovadora. Trata -se de um estudo qualitativo por meio de pesquisa -ação: o pesquisador vivenciou a aplicação da norma em questão em uma organizaç ão e, com base nessa experiência e em toda a revisão bibliográfica,  propõe um framework  que pretende servir às organizações que desejam normatizar seus sistemas de gestão do conhecimento, assegurando sua continuidade, manutenção e melhoria, com base na ISO  30401 . Com um passo a passo estruturado que assegura o sucesso da aplicação da GC, foi gerado o  “KMROCKET ”: um framework  completo e de fácil entendimento, disponível para as organizações  reduzirem a chance de erro e potencializarem os resultados na aplica ção e manutenção de seus sistemas de gestão do conhecimento . ",
+    "palavras_chave": [
+        "Gestão do conhecimento",
+        "Sistemas de gestão do conhecimento",
+        "ISO 30401",
+        "Framework."
+    ],
+    "abstract": "ISO 30401 is the international standard for knowledge management systems. There is no organization certified by this new standard in Brazil, and few, so far, in the world. There is no bibliography, models or scripts that facilitate or enable a path for the  use of this new standard. Despite this, the application of knowledge management is a challenge in organizations due to several factors, but it also constitutes a necessity, since knowledge has become the most important asset in the business context, and n eeds to be managed in a effective way. In its general objective, this work aims to develop an adaptive knowledge management framework for the application of ISO 30401 in organizations. As specific objectives, it is expected to identify knowledge management  systems in organizations; analyze the main requirements of ISO 30401 related to knowledge management; and apply the framework developed in an innovative organization. This is a qualitative study, through Action Research: the researcher experienced the application of the standard in question in an organization and, based on this experience and on the entire bibliographic review, proposes a framework, which intends to serve the organizations that want to standardize their knowledge management systems, ensuri ng their continuity, maintenance and improvement, based on ISO 30401. easy to understand, available for organizations to reduce the chance of error and enhance results in the application and maintenance of their knowledge management systems.  ",
+    "keywords": [
+        "Knowledge management",
+        "Knowledge management systems",
+        "ISO 30401",
+        "Framework"
+    ],
+    "introducao": {
+        "contextualizacao": "O autor descreve sua trajetória profissional, iniciando na indústria de confecções, passando pela gestão da qualidade, consultoria, mestrado em Administração, experiência com diversas normas ISO,  e, em 2017, se inscreve em disciplinas isoladas do Programa de Pós-Graduação em Engenharia e Gestão do Conhecimento (PPGEGC) da Universidade Federal de Santa Catarina (UFSC). A partir de 2018, ele participa do grupo de pesquisa CoMovI e ingressa no doutorado no PPGEGC. Sua experiência com normas ISO, o incentivo de um professor e a recente emissão da ISO 30401 impulsionaram a escolha do tema para sua tese.",
+        "problematica": "O conhecimento é um recurso estratégico nas organizações, presente em documentos, rotinas, processos, normas e pessoas. A gestão do conhecimento (GC) visa a gerenciar esse ativo de forma eficaz. A ISO 30401 é a norma internacional para sistemas de gestão do conhecimento, mas sua aplicação é um desafio para as organizações inovadoras que necessitam de uma plataforma e de um caminho para a implementação. Apesar da existência de diversas metodologias de GC, não há estudos que proponham um framework específico para a aplicação da ISO 30401.",
+        "ineditismo": "A aplicação da ISO 30401 é inédita no Brasil, e a baixa adesão no mundo pode ser atribuída à sua recente emissão e à falta de conexão entre as teorias de GC e a norma.",
+        "contribuição": "A tese visa a desenvolver um framework adaptativo de gestão do conhecimento para a aplicação da ISO 30401 em organizações inovadoras, contribuindo para a disseminação da GC e proporcionando um roteiro para a implementação da norma."
+    },
+    "conclusao": "A pesquisa culminou na elaboração do KMROCKET, um framework adaptativo de GC para a aplicação da ISO 30401 em organizações, validado por especialistas. O KMROCKET visa facilitar a implementação da norma,  tornando a GC mais acessível e  auxiliando na criação de um sistema de gestão do conhecimento competitivo. A tese contribui para a academia, as organizações e a sociedade, popularizando a norma e  incentivando a aplicação da GC em diversos portes e segmentos. O KMROCKET é uma ferramenta inédita e  estratégica que pode ser aprimorada em estudos futuros, aprofundando os estágios do framework e explorando a relação da ISO 30401 com outras normas, como a ISO 56002."
+}
