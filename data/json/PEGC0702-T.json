@@ -1,0 +1,51 @@
+{
+    "autor": "Bobiquins Estêvão de Mello",
+    "titulo": "Ontologia do Monoteísmo",
+    "tipo": "tese",
+    "area_de_concentracao": "Engenharia do Conhecimento",
+    "ano_de_publicacao": "2021",
+    "local": "Florianópolis, SC",
+    "orientador": "Prof. Francisco Antonio P . Fialho, Dr.",
+    "coorientador": "Prof. José Leomar Todesco, Dr.",
+    "resumo": "Por que as religiões causam violência e sofrimento? foi a aflição que motivou esta pesquisa e que resultou na Ontologia do Monoteísmo (OntoM). As religiões mais influentes do mundo — Judaísmo, Cristianismo e Islamismo — foram reunidas, pelos seus textos fundamentais, num artefato tecnológico que poderá servir de base para futuros experimentos e aplicações de apoio à interpretação e compreensão das Escrituras . Trata-se de uma pesquisa inter e transdisciplinar que reúne um objeto da área de Ciência da Religião e Teologia com o tratamento de metodologias da Filosofia e da Engenharia do Conhecimento. O desenvolvimento da tese explicitou problema da interpretação no domínio dos textos monoteístas que ocasiona problema do conhecimento entre os adeptos das religiões, o que gerou a questão de pesquisa: como apoiar a interpretação do conhecimento religioso monoteísta? Oferecemos como resultado desta tese uma ontologia de referência, um modelo conceitual do domínio do Monoteísmo, que pode ser o primeiro passo para o desenvolvimento de softwares dedicados para sistemas de conhecimento e hermenêutica. A OntoM modela o conhecimento religioso em nível de realidade espiritual projetada pelo texto, e conecta esses conceitos com os da realidade material através da constituição do ser humano na Hermenêutica da Faticidade de Martin Heidegger, da Hermenêutica Filosófica de Paul Ricoeur, e da Ética Global de Edgar Morin e de Hans Küng. Concluímos que os conceitos do Tanakh, da Bíblia, do Alcorão e do Pentateuco Kardeciano podem ser representados em conjunto em um artefato computacional com vistas ao processamento de linguagem natural com finalidade hermenêutica.",
+    "palavras_chave": [
+        "ontologia",
+        "monoteísmo",
+        "judaísmo",
+        "cristianismo",
+        "islamismo",
+        "espiritismo",
+        "complexidade",
+        "transdisciplinaridade",
+        "hermenêutica",
+        "ética",
+        "tanakh",
+        "bíblia",
+        "alcorão",
+        "kardec"
+    ],
+    "abstract": "Why religions cause violence and suffering? was the affliction that motivated this research which resulted in the Ontology of Monotheism (OntoM), a tech artifact which uses the concepts from foundational texts of Monotheism to unite the most influential religions of the world — Judaism, Christianity, and Islam —, aiming for future experiments and software applications to support Scripture’s interpretation and understanding. Our thesis is an inter and transdisciplinary research which joins an object from Study of Religion and Theology field, with methodologies from Philosophy and Knowledge Engineering. We have found interpretation matter in the domain that causes knowledge issues among religious believers. This finding leads to our research question: how to support the interpretation of monotheistic religious knowledge? The result of the thesis is a reference ontology, a conceptual model of Monotheism’s domain, which can be the first step to the development of dedicated software in knowledge and hermeneutics systems. The OntoM models the religious knowledge in the level of the spiritual reality projected by the text and connects these concepts with material reality through the human being structure from the categories of Heidegger’s Hermeneutics of Facticity , besides the Ricoeur’s Philosophical Hermeneutics and the Global Ethics from Edgar Morin and Hans Küng. We conclude that the concepts of the Tanakh, the Bible, the Quran and the Kardecian Pentateuch can be represented together in a computational artifact for processing in natural language systems with hermeneutical purposes.",
+    "keywords": [
+        "ontology",
+        "monotheism",
+        "judaism",
+        "christianity",
+        "islam",
+        "spiritism",
+        "complexity",
+        "transdisciplinarity",
+        "hermeneutics",
+        "ethics",
+        "tanakh",
+        "bible",
+        "quran",
+        "kardec"
+    ],
+    "introducao": {
+        "contextualizacao": "A tese aborda a questão da violência e do sofrimento causados pelas religiões, explorando a interpretação do conhecimento religioso monoteísta como possível causa. O autor, um praticante religioso, relata suas experiências com o Catolicismo, o Espiritismo e uma seita esotérica, evidenciando o desconforto em estar ligado a instituições religiosas e a responsabilidade pelas ações delas.",
+        "problematica": "A pesquisa levanta duas hipóteses: 1) há problema de interpretação do conhecimento religioso, o que leva ao problema da utilização do conhecimento; 2) há problema do conhecimento em si, no sentido da gestão do conhecimento, com deficiências no compartilhamento e utilização. Essas hipóteses indicam que a má gestão e interpretação inadequada de textos como a Bíblia Hebraica, a Bíblia Cristã, o Alcorão e o Pentateuco Espírita podem resultar em violência e sofrimento. ",
+        "ineditismo": "A pesquisa é inédita no PPGEGC em relação ao objeto de estudo - os textos religiosos do Monoteísmo -, e também no âmbito geral em termos de propósito, qual seja, o de apoiar a interpretação de textos religiosos monoteístas. A abordagem inter e transdisciplinar, com uso de ferramentas tecnológicas como o OntoKEM e o SABiO, além do algoritmo BERT do Google, representa outro diferencial.",
+        "contribuição": "A tese pretende contribuir para a redução da violência e do sofrimento com causa religiosa, buscando auxiliar na interpretação do conhecimento religioso monoteísta. A pesquisa visa a conciliar diferentes áreas do conhecimento - Ciência da Religião, Teologia, Filosofia e Engenharia do Conhecimento -, com foco na solução de problemas complexos."
+    },
+    "conclusao": "A tese cumpre seus objetivos de apresentar uma ontologia para apoiar a interpretação do conhecimento religioso monoteísta, baseada no modelo conceitual do Monoteísmo. A pesquisa integra as áreas de Ciência da Religião, Teologia, Filosofia e Engenharia do Conhecimento, buscando superar a visão reducionista e dogmática do conhecimento religioso. A Ontologia do Monoteísmo é uma ferramenta inovadora que visa contribuir para a redução da violência e do sofrimento com causa religiosa, oferecendo uma nova perspectiva para o estudo e a interpretação de textos religiosos. A tese também destaca a importância da educação e do acesso ao conhecimento, especialmente nas áreas de finanças e religião, como forma de combater a ignorância e a exploração."
+}

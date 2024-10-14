@@ -1,9 +1,7 @@
-# backend/app/routers/documents.py
-
 import os
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-from ..services.parser import ParserService
+from ..services.parser_service import ParserService
 from ..services.extract_content import ExtractContentService
 from pydantic import BaseModel
 
