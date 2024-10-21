@@ -32,7 +32,7 @@ fonttools==4.53.1
 frozenlist==1.4.1
 gitdb==4.0.11
 GitPython==3.1.43
-google-ai-generativelanguage==0.6.6
+google-ai-generativelanguage==0.6.10
 google-api-core==2.19.1
 google-api-python-client==2.137.0
 google-auth==2.32.0
@@ -43,7 +43,7 @@ google-cloud-core==2.4.1
 google-cloud-resource-manager==1.12.5
 google-cloud-storage==2.18.2
 google-crc32c==1.6.0
-google-generativeai==0.7.2
+google-generativeai==0.8.3
 google-resumable-media==2.7.2
 googleapis-common-protos==1.63.2
 greenlet==3.0.3
