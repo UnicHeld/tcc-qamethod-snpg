@@ -1,3 +1,5 @@
+# Configuração do GitHub
+
 Configurações e templates do GitHub para o repositório TCC QA Method SNPG.
 
 - `copilot-instructions.md`: regras canônicas, fluxo spec-driven e gate de system design para o
