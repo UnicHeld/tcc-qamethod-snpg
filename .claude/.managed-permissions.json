@@ -1,0 +1,14 @@
+{
+  "language": "python",
+  "managed": [
+    "Read(**/.env*)",
+    "Edit(**/.env*)",
+    "Write(**/.env*)",
+    "Edit(**/.venv/**)",
+    "Write(**/.venv/**)",
+    "Edit(**/__pycache__/**)",
+    "Write(**/__pycache__/**)",
+    "Edit(**/*.pyc)",
+    "Write(**/*.pyc)"
+  ]
+}

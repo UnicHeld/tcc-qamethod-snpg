@@ -1,0 +1,18 @@
+{
+  "description": "Carrega os comandos de validacao do projeto no inicio da sessao.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sed '1s/^/Project context: /' \"$(git rev-parse --show-toplevel)/.codex/project.json\"",
+            "statusMessage": "Carregando contexto do TCC",
+            "additionalContextLimit": 2000
+          }
+        ]
+      }
+    ]
+  }
+}

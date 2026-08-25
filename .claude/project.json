@@ -1,0 +1,11 @@
+{
+  "tools": [
+    {
+      "when": "py",
+      "commit": [
+        "ruff check .",
+        "pytest"
+      ]
+    }
+  ]
+}

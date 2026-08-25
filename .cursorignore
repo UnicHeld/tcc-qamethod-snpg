@@ -1,0 +1,17 @@
+# Credenciais e configurações locais
+.env*
+**/.env*
+
+# Ambientes e dependências geradas
+.venv/
+qa-application/node_modules/
+**/__pycache__/
+**/*.pyc
+
+# Documentos acadêmicos potencialmente sensíveis
+data/**/*.pdf
+
+# Artefatos e caches
+.pytest_cache/
+.ruff_cache/
+qa-application/build/

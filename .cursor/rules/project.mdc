@@ -1,0 +1,15 @@
+---
+description: Instruções gerais do TCC QA Method SNPG
+alwaysApply: true
+---
+
+# Instruções do projeto
+
+Antes de analisar ou alterar o repositório, leia e siga `AGENTS.md`, que é a fonte canônica das
+regras de arquitetura, segurança, escopo, Git, validação e entrega.
+
+- Preserve alterações locais não relacionadas.
+- Não leia, edite ou exponha arquivos `.env*`.
+- Não faça commit, push ou operações destrutivas sem solicitação explícita.
+- Mantenha regras de negócio em `qa-services/app/services/`; routers devem apenas tratar HTTP.
+- Após alterações, execute somente as validações aplicáveis e informe qualquer falha.

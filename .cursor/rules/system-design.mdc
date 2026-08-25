@@ -1,0 +1,16 @@
+---
+description: System design para arquitetura, integrações, contratos, persistência e trade-offs técnicos relevantes
+alwaysApply: false
+---
+
+# System design
+
+Siga o gate em `docs/processes/spec-driven-development.md` e use
+`docs/architecture/system-design-template.md`.
+
+- Baseie o estado atual em documentação, configuração e código do repositório.
+- Explicite objetivos, não objetivos, restrições, premissas e questões abertas.
+- Compare alternativas por compatibilidade, dados, segurança, confiabilidade, operação, desempenho
+  e custo na medida do risco.
+- Registre arquitetura em `docs/architecture/` e escolhas duradouras em `docs/decisions/`.
+- Vincule o desenho à spec e não implemente se o pedido for apenas de análise ou revisão.

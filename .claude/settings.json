@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": [
+      "Read(**/.env*)",
+      "Edit(**/.env*)",
+      "Write(**/.env*)",
+      "Edit(**/.venv/**)",
+      "Write(**/.venv/**)",
+      "Edit(**/__pycache__/**)",
+      "Write(**/__pycache__/**)",
+      "Edit(**/*.pyc)",
+      "Write(**/*.pyc)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "cat .claude/project.json" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 .claude/hooks/gate.py" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "python3 .claude/hooks/feedback.py" }
+        ]
+      }
+    ]
+  }
+}

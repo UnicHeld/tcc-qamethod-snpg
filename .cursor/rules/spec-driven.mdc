@@ -1,0 +1,14 @@
+---
+description: Fluxo spec-driven para funcionalidades e mudanças de comportamento, contratos, dados, método QA ou RAG
+alwaysApply: false
+---
+
+# Spec-driven
+
+Siga `docs/processes/spec-driven-development.md` e use `docs/specs/spec-template.md`.
+
+- Leia `AGENTS.md`, documentação canônica e código afetado antes de escrever a spec.
+- Aplique o gate de system design antes de fechar requisitos.
+- Registre `REQ-*` e `AC-*` rastreáveis em `docs/specs/<slug>.md`.
+- Não invente escopo ou decisões e não implemente com questão bloqueante em aberto.
+- Ao concluir, registre somente validações executadas e reconcilie a documentação canônica.

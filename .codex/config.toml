@@ -1,0 +1,18 @@
+default_permissions = "tcc"
+
+[permissions.tcc]
+description = "Workspace TCC QA Method com arquivos sensiveis bloqueados, .venv somente leitura e escrita em .git."
+extends = ":workspace"
+
+[permissions.tcc.filesystem]
+glob_scan_max_depth = 3
+
+[permissions.tcc.filesystem.":workspace_roots"]
+"**/.env*" = "deny"
+".venv/**" = "read"
+".git" = "write"
+".git/**" = "write"
+".codex" = "write"
+".codex/**" = "write"
+".agents" = "write"
+".agents/**" = "write"

@@ -1,0 +1,14 @@
+---
+description: Convenções para código Python do projeto
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python
+
+- Siga Ruff com as regras `E`, `W` e `F`.
+- Use nomes explícitos, type hints e retornos antecipados.
+- Separe regras de negócio de prompts, apresentação e infraestrutura.
+- Valide entradas externas e nunca registre segredos ou dados pessoais.
+- Não capture exceções sem contexto seguro ou fallback explícito.
+- Execute `ruff check .` e os testes relevantes após mudanças Python.
