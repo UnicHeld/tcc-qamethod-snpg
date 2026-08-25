@@ -16,3 +16,11 @@ glob_scan_max_depth = 3
 ".codex/**" = "write"
 ".agents" = "write"
 ".agents/**" = "write"
+
+[permissions.tcc.network]
+enabled = true
+
+[permissions.tcc.network.domains]
+"github.com" = "allow"
+"api.github.com" = "allow"
+"**.github.com" = "allow"

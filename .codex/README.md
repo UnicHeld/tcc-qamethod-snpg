@@ -5,7 +5,7 @@ nativas do produto:
 
 - `AGENTS.md`: regras gerais e contratos do repositorio;
 - `.codex/config.toml`: perfil de permissao do workspace, com escrita
-  explicita em `.git` para permitir `git add`/`git commit` no sandbox;
+  explicita em `.git` e rede liberada para `github.com`;
 - `.codex/hooks.json`: contexto carregado no inicio da sessao;
 - `.codex/project.json`: comandos de validacao por tipo de arquivo.
 
