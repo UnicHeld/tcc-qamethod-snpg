@@ -19,6 +19,8 @@ charset-normalizer==3.5.1
     # via requests
 click==8.5.0
     # via uvicorn
+colorama==0.4.6 ; sys_platform == 'win32'
+    # via pytest
 cryptography==50.0.1
     # via google-auth
 distro==1.9.0
@@ -44,6 +46,12 @@ idna==3.19
     #   anyio
     #   httpx
     #   requests
+iniconfig==2.3.0
+    # via pytest
+packaging==26.3
+    # via pytest
+pluggy==1.6.0
+    # via pytest
 pyasn1==0.6.4
     # via pyasn1-modules
 pyasn1-modules==0.4.2
@@ -56,8 +64,11 @@ pydantic==2.13.5
     #   google-genai
 pydantic-core==2.46.5
     # via pydantic
+pygments==2.21.0
+    # via pytest
 pypdf==6.18.0
     # via qa-services
+pytest==9.1.1
 python-dotenv==1.2.3
     # via
     #   qa-services
@@ -70,6 +81,7 @@ requests==2.34.2
     # via
     #   google-auth
     #   google-genai
+ruff==0.16.6
 sniffio==1.3.1
     # via google-genai
 starlette==1.6.0

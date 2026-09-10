@@ -1,44 +1,70 @@
 import io
-import pikepdf
-from PyPDF2 import PdfReader
+from dataclasses import dataclass
+from hashlib import sha256
+
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
+
+
+class DocumentParseError(Exception):
+    """Erro esperado durante a admissão ou leitura de um documento."""
+
+
+class InvalidPdfError(DocumentParseError):
+    pass
+
+
+class PageLimitExceededError(DocumentParseError):
+    pass
+
+
+class PdfWithoutTextError(DocumentParseError):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ParsedDocument:
+    text: str
+    page_count: int
+    sha256: str
+
 
 class ParserService:
-    def __init__(self):
-        pass
-    
-    def extrair_texto(self, pdf_content: bytes) -> str:
+    def __init__(self, max_pages: int = 300) -> None:
+        self.max_pages = max_pages
+
+    def extract_text(self, pdf_content: bytes) -> ParsedDocument:
+        if not pdf_content[:1024].lstrip().startswith(b"%PDF-"):
+            raise InvalidPdfError("O arquivo não possui uma assinatura PDF válida.")
+
         try:
-            # Tenta carregar o PDF a partir do conteúdo em bytes
-            reader = PdfReader(io.BytesIO(pdf_content))
-            texto_extraido = []
+            reader = PdfReader(io.BytesIO(pdf_content), strict=False)
+            if reader.is_encrypted and reader.decrypt("") == 0:
+                raise InvalidPdfError("PDF protegido por senha não é suportado.")
+
+            page_count = len(reader.pages)
+            if page_count == 0:
+                raise InvalidPdfError("O PDF não contém páginas.")
+            if page_count > self.max_pages:
+                raise PageLimitExceededError(
+                    f"O PDF tem {page_count} páginas; o limite atual é {self.max_pages}."
+                )
+
+            extracted_pages: list[str] = []
             for page in reader.pages:
-                texto_extraido.append(page.extract_text())
-            
-            return "\n".join(texto_extraido)
-        except Exception as e:
-            print(f"Erro ao extrair texto: {e}")
-            print("Tentando reparar o PDF...")
-            
-            # Se ocorrer um erro, tenta reparar o PDF
-            pdf_content_reparado = self.reparar_pdf(pdf_content)
-            if pdf_content_reparado:
-                # Tenta novamente extrair o texto do PDF reparado
-                reader = PdfReader(io.BytesIO(pdf_content_reparado))
-                texto_extraido = []
-                for page in reader.pages:
-                    texto_extraido.append(page.extract_text())
-                return "\n".join(texto_extraido)
-            else:
-                raise Exception("PDF corrompido e não foi possível repará-lo.")
-    
-    def reparar_pdf(self, pdf_content: bytes) -> bytes:
-        try:
-            # Repara o PDF em memória sem salvar em disco
-            with pikepdf.open(io.BytesIO(pdf_content)) as pdf:
-                reparado_stream = io.BytesIO()
-                pdf.save(reparado_stream)
-                print("PDF reparado com sucesso.")
-                return reparado_stream.getvalue()
-        except pikepdf.PdfError as e:
-            print(f"Erro ao reparar PDF: {e}")
-            return None
+                page_text = page.extract_text() or ""
+                extracted_pages.append(page_text.strip())
+        except (PdfReadError, OSError, ValueError) as error:
+            raise InvalidPdfError("O PDF está inválido ou não pôde ser lido.") from error
+
+        text = "\n\n".join(page for page in extracted_pages if page).strip()
+        if not text:
+            raise PdfWithoutTextError(
+                "O PDF não possui texto extraível. OCR está desabilitado neste perfil."
+            )
+
+        return ParsedDocument(
+            text=text,
+            page_count=page_count,
+            sha256=sha256(pdf_content).hexdigest(),
+        )

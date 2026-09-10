@@ -19,14 +19,18 @@ async def carregar_documento(file: UploadFile = File(...)):
     try:
         original_path = file.filename
         content = await file.read()
-        texto = parser_service.extrair_texto(content)
+        texto = parser_service.extract_text(content).text
         response_chunks = extract_content_service.extrair_dados_llm(texto)
-        
+
         def stream_response():
             for chunk in response_chunks:
                 yield chunk
 
-        return StreamingResponse(stream_response(), media_type="text/plain", headers={"Original-Path": original_path})
+        return StreamingResponse(
+            stream_response(),
+            media_type="text/plain",
+            headers={"Original-Path": original_path},
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -39,7 +43,7 @@ async def salvar_json(conteudo: Conteudo):
         original_path = conteudo.original_path
         base_dir = original_path.replace("data/pdf/", "data/json/")
         output_path = f"{os.path.splitext(base_dir)[0]}.json"
-        
+
         extract_content_service.save_default_json(clean_content, output_path)
         return {"message": "Arquivo JSON salvo com sucesso!", "path": output_path}
     except Exception as e:

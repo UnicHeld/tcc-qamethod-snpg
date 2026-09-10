@@ -124,6 +124,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.python/
 env/
 venv/
 ENV/
@@ -162,6 +163,7 @@ cython_debug/
 #.idea/
 
 /data/pdfs
+/qa-services/runtime/
 
 # PDF documents
 *.pdf

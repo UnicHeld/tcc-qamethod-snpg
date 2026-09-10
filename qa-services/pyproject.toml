@@ -1,0 +1,34 @@
+[project]
+name = "qa-services"
+version = "0.1.0"
+description = "API local do laboratório QA Method"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.116,<1",
+    "google-genai>=1.30,<2",
+    "pypdf>=6,<7",
+    "python-dotenv>=1.1,<2",
+    "python-multipart>=0.0.20,<1",
+    "uvicorn[standard]>=0.35,<1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "pytest>=8.4,<10",
+    "ruff>=0.12,<1",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+markers = [
+    "live: executa integração opt-in com provedor externo",
+]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]

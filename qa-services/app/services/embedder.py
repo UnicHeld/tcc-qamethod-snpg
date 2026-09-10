@@ -9,11 +9,13 @@ class Embedder:
     """
     def __init__(self, api_key, embedding_model="text-embedding-3-small"):
         """
-        Inicializa a classe Embedder com a chave da API da OpenAI e o modelo de embedding especificado.
+        Inicializa a classe Embedder com a chave da API da OpenAI e o modelo de
+        embedding especificado.
 
         Args:
             api_key (str): A chave da API para acessar a API da OpenAI.
-            embedding_model (str): O modelo de embedding a ser usado. Padrão é "text-embedding-3-small".
+            embedding_model (str): O modelo de embedding a ser usado. O padrão é
+                "text-embedding-3-small".
         """
         self.client = OpenAI(api_key=api_key)
         self.embedding_model = embedding_model
@@ -28,18 +30,22 @@ class Embedder:
         Returns:
             str: A string concatenada a partir do conteúdo JSON.
         """
-        content_to_embed = (
-            "Título: " + json_content.get("titulo", "") + "\n" +
-            "Área de concentração: " + json_content.get("area_de_concentracao", "") + "\n" +
-            "Resumo: " + json_content.get("resumo", "") + "\n" +
-            "Palavras-chave: " + ", ".join(json_content.get("palavras_chave", [])) + "\n" +
-            "Abstract: " + json_content.get("abstract", "") + "\n" +
-            "Keywords: " + ", ".join(json_content.get("keywords", [])) + "\n" +
-            "Introdução - Contextualização: " + json_content.get("introducao", {}).get("contextualizacao", "") + "\n" +
-            "Introdução - Problematica: " + json_content.get("introducao", {}).get("problematica", "") + "\n" +
-            "Introdução - Ineditismo: " + json_content.get("introducao", {}).get("ineditismo", "") + "\n" +
-            "Introdução - Contribuição: " + json_content.get("introducao", {}).get("contribuição", "") + "\n" +
-            "Conclusão: " + json_content.get("conclusao", "")
+        introduction = json_content.get("introducao", {})
+        content_to_embed = "\n".join(
+            [
+                "Título: " + json_content.get("titulo", ""),
+                "Área de concentração: " + json_content.get("area_de_concentracao", ""),
+                "Resumo: " + json_content.get("resumo", ""),
+                "Palavras-chave: " + ", ".join(json_content.get("palavras_chave", [])),
+                "Abstract: " + json_content.get("abstract", ""),
+                "Keywords: " + ", ".join(json_content.get("keywords", [])),
+                "Introdução - Contextualização: "
+                + introduction.get("contextualizacao", ""),
+                "Introdução - Problematica: " + introduction.get("problematica", ""),
+                "Introdução - Ineditismo: " + introduction.get("ineditismo", ""),
+                "Introdução - Contribuição: " + introduction.get("contribuição", ""),
+                "Conclusão: " + json_content.get("conclusao", ""),
+            ]
         )
         return content_to_embed
 
@@ -55,7 +61,9 @@ class Embedder:
         """
         try:
             text = text.replace("\n", " ")
-            embedding_response = self.client.embeddings.create(input=[text], model=self.embedding_model)
+            embedding_response = self.client.embeddings.create(
+                input=[text], model=self.embedding_model
+            )
             return embedding_response.data[0].embedding
         except Exception as e:
             print(f"Erro ao gerar o embedding: {e}")
@@ -94,8 +102,8 @@ class Embedder:
 
     def add_embedding_to_json(self, file_path):
         """
-        Adiciona um embedding ao conteúdo JSON no caminho de arquivo especificado. Se o embedding já existir
-        no conteúdo JSON, ele pula a geração do embedding.
+        Adiciona um embedding ao conteúdo JSON no caminho de arquivo especificado.
+        Se o embedding já existir, pula a geração.
 
         Args:
             file_path (str): O caminho para o arquivo JSON.
@@ -113,7 +121,7 @@ class Embedder:
 
         content_to_embed = self._concatenate_json_content(json_content)
         embedding = self.get_embedding(content_to_embed)
-        
+
         if embedding is not None:
             json_content["embedding"] = embedding
             self._write_json_file(file_path, json_content)

@@ -9,19 +9,20 @@ from .embedder import Embedder
 
 class QdrantManager:
     """
-    QdrantManager class é responsável por gerenciar a conexão com o Qdrant e realizar operações de inserção, remoção e busca de vetores.
+    Gerencia a conexão com o Qdrant e operações de inserção, remoção e busca de
+    vetores.
     """
     def __init__(self, url: str, api_key: str):
         """
         Inicializa o QdrantManager com o host e porta do Qdrant.
-        
+
         Args:
             url (str): O endereço do Qdrant.
             api_key (str): A chave de API do Qdrant.
         """
         self.client = QdrantClient(url=url, api_key=api_key)
         self.embedder = Embedder(api_key=os.environ.get("OPENAI_API_KEY"))
-    
+
     def create_collection(self, collection_name, vector_size, distance_metric='Cosine'):
         """
         Cria uma coleção no Qdrant.
@@ -54,7 +55,7 @@ class QdrantManager:
             return
 
         unique_id = self.__generate_unique_id(document)
-        
+
         point = models.PointStruct(
             id=unique_id,
             vector=document["embedding"],

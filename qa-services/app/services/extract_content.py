@@ -9,11 +9,12 @@ class ExtractContentService:
         self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def extrair_dados_llm(self, texto: str):
-        prompt = f"""
-        Extraia o conteúdo da dissertação/tese colocando-o em um JSON estruturado seguindo as {{REGRAS}}.
+        prompt = """
+        Extraia o conteúdo da dissertação/tese em um JSON estruturado seguindo as
+        {REGRAS}.
 
-        {{ROTEIRO}}
-        {{
+        {ROTEIRO}
+        {
             "autor": "",
             "titulo": "",
             "tipo": "",
@@ -26,33 +27,41 @@ class ExtractContentService:
             "palavras_chave": [],
             "abstract": "",
             "keywords": [],
-            "introducao": {{
+            "introducao": {
                 "contextualizacao": "",
                 "problematica": "",
                 "ineditismo": "",
                 "contribuição": ""
-            }},
+            },
             "conclusao": ""
-        }}
+        }
 
-        {{REGRAS}}
-        > O conteúdo extraído deve ser retornado em JSON no formato do {{ROTEIRO}}, sem alterações em suas chaves.
+        {REGRAS}
+        > O conteúdo extraído deve ser retornado em JSON no formato do {ROTEIRO},
+          sem alterações em suas chaves.
         > Tipo é tese ou dissertação.
-        > Área de concentração é a área principal da tese/dissertação que pode ser obtida na subseção de aderência ou semelhante.
+        > Área de concentração é a área principal da tese/dissertação, obtida na
+          subseção de aderência ou semelhante.
         > Ano de publicação é o ano no formato de 4 dígitos, por exemplo, 2023.
         > Local é a cidade que consta no documento.
-        > Orientador, Coorientador, Resumo, Abstract, Palavras-Chave, Keywords devem ser exatamente iguais ao que consta no documento.
-        > Introdução e Conclusão devem ser sumarizados apresentando no mínimo 2000 tokens e não excedendo 4000 tokens.
-        > Introdução deve retornar uma sumarização do texto da introdução, separada em Contextualização e Problemática.
-        > Somente se o documento for uma tese, a introdução deve apresentar as chaves Ineditismo e Contribuição.
-        > Conclusão deve retornar uma sumarização do texto encontrado na seção conclusão ou considerações finais e antes da seção de referências bibliográficas.
+        > Orientador, Coorientador, Resumo, Abstract, Palavras-Chave e Keywords
+          devem ser exatamente iguais ao que consta no documento.
+        > Introdução e Conclusão devem ser sumarizadas com no mínimo 2000 tokens
+          e no máximo 4000 tokens.
+        > Introdução deve separar a sumarização em Contextualização e Problemática.
+        > Somente para tese, a introdução deve apresentar Ineditismo e Contribuição.
+        > Conclusão deve sumarizar a seção de conclusão ou considerações finais,
+          antes das referências bibliográficas.
         > A resposta não deve ultrapassar 8000 tokens.
         """
-        
-        response = self.model.generate_content(contents=prompt + '\n\nDocumento: ' + texto, stream=True)
+
+        response = self.model.generate_content(
+            contents=prompt + '\n\nDocumento: ' + texto,
+            stream=True,
+        )
         for chunk in response:
             yield chunk.text
-        
+
     def convert_to_json(self, content: str) -> dict:
         if not content.strip():
             print("Conteúdo está vazio ou em branco.")
