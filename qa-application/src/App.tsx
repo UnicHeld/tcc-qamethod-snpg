@@ -1,15 +1,13 @@
-import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Home from './pages/Home';
-import Rank from './pages/Evaluation';
 
-const App: React.FC = () => {
+import Evaluation from './pages/Evaluation';
+import Home from './pages/Home';
+
+export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/evaluation" element={<Rank />} />
+      <Route element={<Home />} path="/" />
+      <Route element={<Evaluation />} path="/evaluation" />
     </Routes>
   );
 }
-
-export default App;

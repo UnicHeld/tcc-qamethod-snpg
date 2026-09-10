@@ -1,22 +1,7 @@
-// src/components/Footer.tsx
-import React from 'react';
-
-const Footer: React.FC = () => {
-    return (
-        <footer className="bg-black text-white text-center py-4">
-            <p>
-                &copy; 2024. D&T Retrieval - Desenvolvido por
-                <a
-                    href="https://www.linkedin.com/in/theHprogrammer/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold hover:underline hover:text-red-500 ml-1"
-                >
-                    Helder Henrique
-                </a>
-            </p>
-        </footer>
-    );
+export default function Footer() {
+  return (
+    <footer className="border-t border-stone-800 bg-stone-950 px-4 py-5 text-center text-sm text-stone-300">
+      QA Method · Protótipo acadêmico local para o SNPG
+    </footer>
+  );
 }
-
-export default Footer;

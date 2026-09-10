@@ -1,37 +1,26 @@
-// src/components/Navbar.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-const Navbar: React.FC = () => {
-    return (
-        <nav className="bg-black text-white py-4">
-            <div className="container mx-auto flex justify-between items-center">
-                {/* Logo */}
-                <div className="text-2xl font-bold text-red-600">
-                    D&T Retrieval
-                </div>
+const linkClassName = ({ isActive }: { isActive: boolean }) =>
+  `rounded-md px-3 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-white ${
+    isActive ? 'bg-white text-stone-950' : 'text-stone-200 hover:bg-stone-800 hover:text-white'
+  }`;
 
-                {/* Menu */}
-                <ul className="flex space-x-6">
-                    <li>
-                        <Link to="/" className="hover:text-red-500">
-                            Home
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/sobre" className="hover:text-red-500">
-                            Sobre
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/contato" className="hover:text-red-500">
-                            Contato
-                        </Link>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    );
+export default function Navbar() {
+  return (
+    <nav aria-label="Navegação principal" className="bg-stone-950 text-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <NavLink className="font-bold tracking-tight" to="/">
+          QA Method <span className="font-normal text-red-400">· Laboratório</span>
+        </NavLink>
+        <div className="flex gap-1">
+          <NavLink className={linkClassName} end to="/">
+            Início
+          </NavLink>
+          <NavLink className={linkClassName} to="/evaluation">
+            Avaliação
+          </NavLink>
+        </div>
+      </div>
+    </nav>
+  );
 }
-
-export default Navbar;
