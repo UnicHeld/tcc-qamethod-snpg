@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import Settings, get_settings
-from app.routers import evaluation
+from app.routers import documents, evaluation, runs, search
 from app.schemas.evaluation import CapabilitiesResponse, Capability, EvaluationMode
 
 
@@ -14,9 +14,14 @@ def create_app() -> FastAPI:
         allow_origins=list(settings.cors_origins),
         allow_credentials=False,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type"],
+        allow_headers=["Content-Type", "Idempotency-Key"],
     )
     application.include_router(evaluation.router, prefix="/evaluation", tags=["evaluation"])
+    application.include_router(
+        documents.router, prefix="/api/v1/documents", tags=["documents"]
+    )
+    application.include_router(runs.router, prefix="/api/v1/runs", tags=["runs"])
+    application.include_router(search.router, prefix="/api/v1/search", tags=["search"])
 
     @application.get("/health")
     async def health() -> dict[str, str]:

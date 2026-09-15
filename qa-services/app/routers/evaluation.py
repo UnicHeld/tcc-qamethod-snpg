@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from app.core.config import Settings, get_settings
 from app.schemas.evaluation import (
     DocumentMetadata,
+    DocumentUnitReference,
     EvaluationMode,
     EvaluationResponse,
     ModelUsage,
@@ -14,8 +15,10 @@ from app.schemas.evaluation import (
 from app.services.evaluation_service import (
     PROMPT_VERSION,
     ProviderError,
+    ProviderModelUnavailableError,
     ProviderQuotaExceededError,
     create_evaluation_adapter,
+    finalize_evaluation,
 )
 from app.services.parser_service import (
     InvalidPdfError,
@@ -111,9 +114,11 @@ async def upload_evaluation(
         )
 
     adapter = create_evaluation_adapter(mode, settings)
+    revision = document.as_revision()
     try:
         async with asyncio.timeout(settings.llm_timeout_seconds):
-            generation = await adapter.generate(document)
+            generation = await adapter.generate(revision)
+        execution = finalize_evaluation(revision, adapter, generation)
     except TimeoutError:
         _api_error(
             status.HTTP_504_GATEWAY_TIMEOUT,
@@ -124,6 +129,12 @@ async def upload_evaluation(
         _api_error(
             status.HTTP_429_TOO_MANY_REQUESTS,
             "provider_quota_exceeded",
+            str(error),
+        )
+    except ProviderModelUnavailableError as error:
+        _api_error(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "provider_model_unavailable",
             str(error),
         )
     except ProviderError as error:
@@ -142,11 +153,16 @@ async def upload_evaluation(
             sha256=document.sha256,
             page_count=document.page_count,
             character_count=len(document.text),
+            units=tuple(
+                DocumentUnitReference(id=unit.id, page=unit.page) for unit in document.units
+            ),
         ),
-        result_markdown=generation.markdown,
+        report=execution.report,
+        result_markdown=execution.markdown,
         usage=ModelUsage(
-            kind=generation.usage_kind,
-            input_tokens=generation.input_tokens,
-            output_tokens=generation.output_tokens,
+            kind=execution.usage_kind,
+            input_tokens=execution.input_tokens,
+            output_tokens=execution.output_tokens,
+            credential_slot=execution.credential_slot,
         ),
     )

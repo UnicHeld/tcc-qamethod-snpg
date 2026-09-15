@@ -2,6 +2,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+from app.domain.evaluation import EvaluationReport
+
 
 class EvaluationMode(StrEnum):
     DEMO = "demo"
@@ -14,17 +16,29 @@ class UsageKind(StrEnum):
     UNKNOWN = "unknown"
 
 
+class CredentialSlot(StrEnum):
+    PRIMARY = "primary"
+    FALLBACK = "fallback"
+
+
+class DocumentUnitReference(BaseModel):
+    id: str
+    page: int = Field(ge=1)
+
+
 class DocumentMetadata(BaseModel):
     file_name: str
     sha256: str
     page_count: int = Field(ge=1)
     character_count: int = Field(ge=1)
+    units: tuple[DocumentUnitReference, ...]
 
 
 class ModelUsage(BaseModel):
     kind: UsageKind
     input_tokens: int | None = Field(default=None, ge=0)
     output_tokens: int | None = Field(default=None, ge=0)
+    credential_slot: CredentialSlot | None = None
 
 
 class EvaluationResponse(BaseModel):
@@ -35,6 +49,7 @@ class EvaluationResponse(BaseModel):
     model: str
     prompt_version: str
     document: DocumentMetadata
+    report: EvaluationReport
     result_markdown: str = Field(min_length=1)
     usage: ModelUsage
 

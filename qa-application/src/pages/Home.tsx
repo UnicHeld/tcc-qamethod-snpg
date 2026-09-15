@@ -38,9 +38,11 @@ export default function Home() {
               title="Documentos e extração"
             />
             <ServiceCard
-              description="Busca lexical e recuperação vetorial local ainda não participam da avaliação atual."
+              description="Pesquise uma dissertação persistida e abra evidências com páginas reais, sem usar LLM ou embedding."
               icon="🔎"
-              title="Busca e RAG"
+              link="/search"
+              status="available"
+              title="Busca de evidências"
             />
             <ServiceCard
               description="Comparação de execuções e judge separado do parecer estão no roteiro experimental."

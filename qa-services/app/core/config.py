@@ -9,7 +9,7 @@ DEFAULT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 DEFAULT_MAX_PAGES = 300
 DEFAULT_PARSE_TIMEOUT_SECONDS = 60
 DEFAULT_LLM_TIMEOUT_SECONDS = 180
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_CORS_ORIGINS = (
     "http://127.0.0.1:5173",
     "http://localhost:5173",
@@ -54,7 +54,9 @@ class Settings:
     gemini_model: str = DEFAULT_GEMINI_MODEL
     allowed_gemini_models: tuple[str, ...] = (DEFAULT_GEMINI_MODEL,)
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
+    database_url: str | None = field(default=None, repr=False)
     google_api_key: str | None = field(default=None, repr=False)
+    gemini_fallback_api_key: str | None = field(default=None, repr=False)
 
     @property
     def real_mode_unavailable_reason(self) -> str | None:
@@ -90,5 +92,7 @@ def get_settings() -> Settings:
         gemini_model=gemini_model,
         allowed_gemini_models=allowed_models,
         cors_origins=_csv_from_env("QA_CORS_ORIGINS", DEFAULT_CORS_ORIGINS),
+        database_url=os.getenv("DATABASE_URL"),
         google_api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
+        gemini_fallback_api_key=os.getenv("GEMINI_FALLBACK_API_KEY"),
     )

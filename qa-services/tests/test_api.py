@@ -3,10 +3,16 @@ import asyncio
 from fastapi.testclient import TestClient
 
 from app.core.config import get_settings
+from app.domain.evaluation import Dimension, DimensionResult, EvaluationDraft
 from app.main import app
 from app.routers import evaluation as evaluation_router
-from app.schemas.evaluation import EvaluationMode
-from app.services.evaluation_service import ProviderError, ProviderQuotaExceededError
+from app.schemas.evaluation import EvaluationMode, UsageKind
+from app.services.evaluation_service import (
+    GenerationResult,
+    ProviderError,
+    ProviderModelUnavailableError,
+    ProviderQuotaExceededError,
+)
 from tests.pdf_factory import blank_pdf, synthetic_pdf
 
 
@@ -59,8 +65,54 @@ def test_demo_upload_returns_a_marked_deterministic_result() -> None:
     assert result["mode_label"] == "Simulado — sem inferência LLM"
     assert result["usage"]["kind"] == "simulated"
     assert result["document"]["page_count"] == 1
+    assert result["document"]["units"][0]["page"] == 1
+    assert "text" not in result["document"]["units"][0]
+    assert result["report"]["simulated"] is True
+    assert len(result["report"]["dimensions"]) == 6
+    assert all(item["evidence_ids"] for item in result["report"]["dimensions"])
     assert result["result_markdown"].count("## ") == 6
     assert "Nota final" not in result["result_markdown"]
+
+
+def test_invalid_structured_result_is_not_published_as_success(monkeypatch) -> None:
+    class InvalidEvidenceAdapter:
+        provider = "test-provider"
+        model = "test-model"
+        simulated = True
+        mode_label = "Simulado"
+
+        async def generate(self, document):
+            draft = EvaluationDraft(
+                title="Parecer inválido",
+                summary="A estrutura é válida, mas a evidência não pertence à revisão.",
+                dimensions=tuple(
+                    DimensionResult(
+                        dimension=dimension,
+                        insufficient=False,
+                        score=5.0,
+                        justification="Justificativa de teste.",
+                        evidence_ids=(f"{document.sha256}:page:999",),
+                    )
+                    for dimension in Dimension
+                ),
+            )
+            return GenerationResult(draft=draft, usage_kind=UsageKind.SIMULATED)
+
+    monkeypatch.setattr(
+        evaluation_router,
+        "create_evaluation_adapter",
+        lambda mode, settings: InvalidEvidenceAdapter(),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/evaluation/upload",
+            files={"file": ("fixture.pdf", synthetic_pdf(), "application/pdf")},
+            data={"mode": "demo"},
+        )
+
+    assert response.status_code == 502
+    assert response.json()["detail"]["code"] == "provider_error"
 
 
 def test_rejects_non_pdf_media_type() -> None:
@@ -190,6 +242,37 @@ def test_provider_error_is_not_published_as_success(monkeypatch) -> None:
 
     assert response.status_code == 502
     assert response.json()["detail"]["code"] == "provider_error"
+
+
+def test_unavailable_provider_model_is_reported_explicitly(monkeypatch) -> None:
+    class MissingModelAdapter:
+        provider = "test-provider"
+        model = "missing-model"
+        simulated = False
+        mode_label = "Real"
+
+        async def generate(self, document):
+            raise ProviderModelUnavailableError(
+                "O modelo missing-model não está disponível para esta chave/API."
+            )
+
+    settings = evaluation_router.Settings(google_api_key="test-key")
+    app.dependency_overrides[get_settings] = lambda: settings
+    monkeypatch.setattr(
+        evaluation_router,
+        "create_evaluation_adapter",
+        lambda mode, current_settings: MissingModelAdapter(),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/evaluation/upload",
+            files={"file": ("fixture.pdf", synthetic_pdf(), "application/pdf")},
+            data={"mode": EvaluationMode.REAL, "confirm_external_processing": "true"},
+        )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "provider_model_unavailable"
 
 
 def test_reports_parse_timeout(monkeypatch) -> None:

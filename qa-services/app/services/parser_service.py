@@ -5,6 +5,9 @@ from hashlib import sha256
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
+from app.domain.documents import PageExtractionStatus
+from app.domain.evaluation import DocumentRevision, DocumentUnit
+
 
 class DocumentParseError(Exception):
     """Erro esperado durante a admissão ou leitura de um documento."""
@@ -23,10 +26,23 @@ class PdfWithoutTextError(DocumentParseError):
 
 
 @dataclass(frozen=True, slots=True)
+class ParsedDocumentPage:
+    page: int
+    status: PageExtractionStatus
+    character_count: int
+    has_images: bool
+
+
+@dataclass(frozen=True, slots=True)
 class ParsedDocument:
     text: str
     page_count: int
     sha256: str
+    units: tuple[DocumentUnit, ...] = ()
+    pages: tuple[ParsedDocumentPage, ...] = ()
+
+    def as_revision(self) -> DocumentRevision:
+        return DocumentRevision(sha256=self.sha256, page_count=self.page_count, units=self.units)
 
 
 class ParserService:
@@ -51,20 +67,74 @@ class ParserService:
                 )
 
             extracted_pages: list[str] = []
-            for page in reader.pages:
+            parsed_pages: list[ParsedDocumentPage] = []
+            for page_number, page in enumerate(reader.pages, start=1):
                 page_text = page.extract_text() or ""
-                extracted_pages.append(page_text.strip())
+                page_text = page_text.strip()
+                extracted_pages.append(page_text)
+                has_images = self._has_raster_images(page)
+                status = PageExtractionStatus.EXTRACTED
+                if not page_text:
+                    status = (
+                        PageExtractionStatus.OCR_CANDIDATE
+                        if has_images
+                        else PageExtractionStatus.NO_TEXT
+                    )
+                parsed_pages.append(
+                    ParsedDocumentPage(
+                        page=page_number,
+                        status=status,
+                        character_count=len(page_text),
+                        has_images=has_images,
+                    )
+                )
         except (PdfReadError, OSError, ValueError) as error:
             raise InvalidPdfError("O PDF está inválido ou não pôde ser lido.") from error
 
         text = "\n\n".join(page for page in extracted_pages if page).strip()
         if not text:
+            ocr_candidates = sum(
+                page.status is PageExtractionStatus.OCR_CANDIDATE for page in parsed_pages
+            )
+            if ocr_candidates:
+                raise PdfWithoutTextError(
+                    "O PDF não possui texto extraível e contém "
+                    f"{ocr_candidates} página(s) candidata(s) a OCR. "
+                    "OCR está desabilitado neste perfil."
+                )
             raise PdfWithoutTextError(
-                "O PDF não possui texto extraível. OCR está desabilitado neste perfil."
+                "O PDF não possui texto extraível nem imagem raster detectável. "
+                "OCR está desabilitado neste perfil."
             )
 
+        document_hash = sha256(pdf_content).hexdigest()
+        units = tuple(
+            DocumentUnit(id=f"{document_hash}:page:{number}", page=number, text=page_text)
+            for number, page_text in enumerate(extracted_pages, start=1)
+            if page_text
+        )
         return ParsedDocument(
             text=text,
             page_count=page_count,
-            sha256=sha256(pdf_content).hexdigest(),
+            sha256=document_hash,
+            units=units,
+            pages=tuple(parsed_pages),
         )
+
+    @staticmethod
+    def _has_raster_images(page: object) -> bool:
+        try:
+            resources = page.get("/Resources")
+            if resources is None:
+                return False
+            resources = resources.get_object()
+            xobjects = resources.get("/XObject")
+            if xobjects is None:
+                return False
+            xobjects = xobjects.get_object()
+            return any(
+                reference.get_object().get("/Subtype") == "/Image"
+                for reference in xobjects.values()
+            )
+        except (AttributeError, KeyError, TypeError, ValueError):
+            return False

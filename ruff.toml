@@ -1,0 +1,6 @@
+line-length = 100
+target-version = "py312"
+extend-exclude = [".claude", "notebooks"]
+
+[lint]
+select = ["E", "F", "W"]

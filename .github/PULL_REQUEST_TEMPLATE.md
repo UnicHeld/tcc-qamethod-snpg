@@ -16,8 +16,7 @@
 <!-- Comandos executados e passo a passo de validação -->
 
 ```bash
-ruff check .
-pytest
+./scripts/test-containers.sh
 ```
 
 ## Outras informações
