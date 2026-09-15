@@ -19,6 +19,26 @@ Solicitação
   -> validação e reconciliação documental
 ```
 
+## Entregáveis de valor
+
+O roadmap e os próximos passos são organizados por entregáveis de valor, não por componente,
+biblioteca ou migração. Um entregável precisa declarar:
+
+1. **Usuário e problema:** quem recebe valor e qual dificuldade concreta é reduzida.
+2. **Resultado observável:** o que a pessoa consegue concluir de ponta a ponta ao final.
+3. **Demonstração:** um fluxo curto, repetível e compreensível sem conhecer a implementação.
+4. **Critérios de aceite:** evidências funcionais, de qualidade e operação que definem “pronto”.
+5. **Limites:** capacidades próximas que continuam explicitamente fora da entrega.
+
+Tarefas como adicionar pgvector, criar uma migração, instalar OCR, escrever um endpoint ou trocar
+um parser são habilitadores técnicos. Elas pertencem a um entregável, mas não são valor entregue
+isoladamente. Cada entregável deve atravessar somente os componentes necessários e terminar em um
+estado utilizável; trabalho preparatório sem experiência disponível permanece marcado como tal.
+
+O próximo entregável é escolhido pelo valor demonstrável e pela redução de risco. A numeração das
+fases técnicas existentes continua válida para rastrear requisitos e dependências, mas não define
+sozinha a prioridade do roadmap.
+
 ### 1. Triagem de impacto
 
 Crie ou atualize uma especificação quando a mudança afetar comportamento observável, contrato de
@@ -55,6 +75,9 @@ Uma especificação está pronta para implementação quando:
 - contratos, dados, segurança e falhas relevantes estão definidos;
 - dependências e migrações estão identificadas;
 - não há questão aberta que possa mudar a solução ou o comportamento esperado.
+
+Para um entregável de valor, a especificação também identifica sua demonstração ponta a ponta e
+separa critérios de conclusão dos habilitadores técnicos internos.
 
 ### 4. Implementação
 

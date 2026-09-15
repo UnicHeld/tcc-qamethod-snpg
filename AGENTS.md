@@ -1,25 +1,27 @@
 # TCC — QA Method SNPG
 
 Projeto de TCC da UFSC: método de avaliação de qualidade para o Sistema Nacional de
-Pós-Graduação (SNPG). O repositório contém notebooks de análise, um serviço FastAPI
-(`qa-services/`) que implementa o método via RAG, e uma interface React (`qa-application/`).
+Pós-Graduação (SNPG). O repositório preserva notebooks históricos da POC, contém um serviço FastAPI
+(`qa-services/`) que implementa avaliação direta e prepara RAG com PostgreSQL + pgvector, além de
+uma interface React (`qa-application/`).
 
 ## Estrutura principal
 
-- `notebooks/`: análises exploratórias e validações estatísticas.
-- `qa-services/`: API FastAPI com RAG (Qdrant) e integrações com LLMs.
+- `notebooks/`: arquivo histórico da POC; fora do produto, build, lint, testes e escopo de evolução.
+- `qa-services/`: API FastAPI com avaliação documental, persistência PostgreSQL, RAG planejado com
+  pgvector e integrações com LLMs.
   - `app/core/`: configurações e dependências.
   - `app/routers/`: endpoints HTTP.
   - `app/services/`: lógica de domínio e integrações.
-- `qa-application/`: interface React (Create React App + Tailwind).
+- `qa-application/`: interface React (Vite + Tailwind).
 - `data/`: dados brutos e processados — nunca versionados se sensíveis.
-- `requirements.txt`: dependências raiz (notebooks e ferramentas).
+- `requirements.txt`: dependências históricas da POC; não instalar para desenvolver o produto.
 
 ## Documentação canônica
 
 - `docs/architecture/fundamental-concepts.md`: escopo, componentes e limites do sistema.
 - `docs/architecture/evaluation-pipeline.md`: fluxo ponta a ponta de um documento.
-- `docs/architecture/rag-pipeline.md`: indexação, recuperação e geração com Qdrant.
+- `docs/architecture/rag-pipeline.md`: indexação, recuperação e geração com PostgreSQL + pgvector.
 - `docs/operations/local-setup.md`: ambiente, variáveis e comandos.
 - `docs/quality/evaluation-method.md`: dimensões, rubrica e prompt do avaliador.
 - `docs/quality/rag-validation.md`: métricas de recuperação e experimentos.
@@ -30,36 +32,28 @@ Pós-Graduação (SNPG). O repositório contém notebooks de análise, um servi�
 ### Ambiente local
 
 ```bash
-# Criar e ativar ambiente virtual
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Stack completa, em modo estável
+docker compose up --build
 
-# Serviço FastAPI
-cd qa-services
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+# Desenvolvimento com hot reload
+docker compose -f compose.yaml -f compose.dev.yaml up --build
 
-# Interface React
-cd qa-application
-npm install
-npm start
+# Alternativa no host: consulte docs/operations/local-setup.md
 ```
 
 ### Qualidade e testes
 
 ```bash
-# Lint (raiz)
-ruff check .
-
-# Lint (qa-services)
-cd qa-services && ruff check .
-
-# Testes
-pytest
+# Lint, typecheck, testes backend/frontend, builds e smoke da stack
+./scripts/test-containers.sh
 ```
 
-- Executar ruff e testes relevantes após mudanças Python.
+- Manter dependências de runtime/desenvolvimento/teste nos targets Docker correspondentes.
+- Toda nova feature precisa de testes offline relevantes executáveis pelo comando containerizado;
+  testes reais de provedores permanecem opt-in e fora da CI comum.
+- Não corrigir, migrar ou reexecutar `notebooks/`; novos experimentos devem ser código testável no
+  componente responsável.
+- Executar Ruff e testes relevantes após mudanças Python.
 - Nunca afirmar que uma validação passou sem executar o comando com sucesso.
 
 ## Convenções de implementação
@@ -70,10 +64,26 @@ pytest
 - Regra de negócio fora de prompts e clientes de infraestrutura.
 - Não adicionar dependência quando a stdlib ou dependência existente resolver.
 
+## Eficiência de contexto e tokens
+
+- Responder e reportar progresso de forma concisa; detalhar somente quando solicitado ou necessário
+  para decisão, segurança ou diagnóstico.
+- Ler primeiro os arquivos diretamente relacionados à tarefa. Consultar documentação canônica por
+  demanda, sem carregar documentos ou diretórios inteiros preventivamente.
+- Agrupar buscas e inspeções independentes e evitar reler conteúdo que não mudou.
+- Executar primeiro as validações mínimas relevantes. Ampliar ou repetir testes somente após nova
+  mudança, falha ou risco ainda não coberto.
+- Não criar artefatos, planos, skills ou subagentes quando a tarefa puder ser concluída diretamente
+  com a mesma qualidade.
+
 ## Spec-driven e system design
 
 - Use o fluxo em `docs/processes/spec-driven-development.md` para funcionalidades ou mudanças
   que alterem comportamento observável, contratos, dados ou mais de um componente.
+- Organize roadmap e próximos passos por entregáveis de valor: usuário/problema, resultado
+  observável, demonstração ponta a ponta, critérios de aceite e limites explícitos.
+- Migração, endpoint, biblioteca ou troca de infraestrutura são habilitadores técnicos dentro de
+  um entregável; não devem ser apresentados isoladamente como valor concluído.
 - Antes da especificação, produza system design quando houver decisão arquitetural, novo contrato
   entre componentes, persistência, integração externa ou trade-off relevante de segurança,
   confiabilidade, desempenho ou custo.

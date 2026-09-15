@@ -5,7 +5,7 @@ nativas do produto:
 
 - `AGENTS.md`: regras gerais e contratos do repositorio;
 - `.codex/config.toml`: perfil de permissao do workspace, com escrita
-  explicita em `.git` e rede liberada para `github.com`;
+  explicita em `.git`, rede liberada para `github.com` e perfil economico de tokens;
 - `.codex/hooks.json`: contexto carregado no inicio da sessao;
 - `.codex/project.json`: comandos de validacao por tipo de arquivo.
 
@@ -21,3 +21,7 @@ As skills compartilhadas entre agentes ficam em `.agents/skills/` e seguem o pro
 
 A configuracao nao replica permissoes pessoais de `.claude/settings.local.json`,
 nem credenciais ou conexoes locais.
+
+Por padrao, o agente usa raciocinio e verbosidade baixos e omite o resumo de raciocinio. Tarefas de
+alto risco ou complexidade podem sobrescrever o esforco pontualmente; as instrucoes do `AGENTS.md`
+tambem limitam leituras, validacoes e artefatos ao necessario para concluir a tarefa com qualidade.
