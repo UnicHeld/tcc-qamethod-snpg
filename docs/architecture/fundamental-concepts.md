@@ -1,7 +1,8 @@
 # Conceitos fundamentais
 
 - Estado da aplicação: F1/F2, laboratório persistente F3a–F3d, extração experimental F4a–F4c,
-  buscas EV-01/EV-02 e implementação offline do insight RAG EV-03 até 2026-09-16.
+  buscas EV-01/EV-02, implementação offline do insight RAG EV-03 e judge demo/real opt-in do EV-05
+  até 2026-09-16; qualidade semântica do judge permanece pendente.
 
 ## Escopo do projeto
 

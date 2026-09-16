@@ -160,6 +160,7 @@ Variáveis reconhecidas pelo backend:
 | `GEMINI_FALLBACK_API_KEY` | ausente | Reserva de outro projeto gratuito; usada uma vez somente após erro de quota da principal |
 | `QA_DEFAULT_MODE` | `demo` | `demo` ou `real`; volta a `demo` se o modo real estiver indisponível |
 | `QA_GEMINI_MODEL` | `gemini-3.5-flash-lite` | Modelo estável solicitado no modo real |
+| `QA_JUDGE_GEMINI_MODEL` | ausente | Segundo modelo usado pelo judge real; deve diferir do avaliador |
 | `QA_ALLOWED_GEMINI_MODELS` | modelo padrão | Allowlist separada por vírgulas, sem fallback automático |
 | `QA_MAX_UPLOAD_BYTES` | `20971520` | Limite total do upload |
 | `QA_MAX_PAGES` | `300` | Limite de páginas por PDF |
@@ -177,6 +178,11 @@ Para executar uma avaliação real, selecione o modo na tela e confirme explicit
 texto extraído. Se uma reserva estiver configurada, um erro de quota da principal autoriza um único
 reenvio pela reserva. Outros erros encerram a execução; não há troca de modelo, plano pago ou
 substituição silenciosa por simulação. O resultado identifica apenas `primary` ou `fallback`.
+
+Para executar o judge real, configure `QA_JUDGE_GEMINI_MODEL` com outro modelo e inclua tanto ele
+quanto `QA_GEMINI_MODEL` em `QA_ALLOWED_GEMINI_MODELS`. A tela exige novo consentimento. O judge
+envia ao provedor o parecer congelado e somente os trechos que esse parecer citou; não reenvia o PDF
+nem recupera evidências adicionais. O modo demo continua disponível sem chave e sem rede.
 
 O padrão `gemini-3.5-flash-lite` foi confirmado no catálogo em 2026-09-13. Um `404` do provedor
 indica que o modelo configurado não está disponível para aquela chave/API; o backend não tenta a

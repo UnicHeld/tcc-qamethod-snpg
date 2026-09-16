@@ -22,6 +22,9 @@ Cada dimensão recebe nota de 0 a 10. O método não produz nota final única.
 
 As instruções `SYSTEM_INSTRUCTION` e `EVALUATION_INSTRUCTION` estão em
 `qa-services/app/services/evaluation_service.py` e são identificadas por `PROMPT_VERSION`.
+A representação estruturada compartilhada da rubrica está em `DIMENSION_CRITERIA` e
+`evaluation_rubric_payload`, no domínio de avaliação; o judge recebe essa representação junto ao
+parecer e às evidências congeladas.
 
 Regras do prompt e do contrato:
 

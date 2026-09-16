@@ -1,7 +1,8 @@
 # Checklist da recuperação do protótipo
 
 - Atualizado em: 2026-09-16.
-- Escopo desta fotografia: F0, F1, F2, F3a–F3d, F4a–F4c e EV-01–EV-03 da F5 do
+- Escopo desta fotografia: F0, F1, F2, F3a–F3d, F4a–F4c, EV-01–EV-03 da F5 e o
+  judge demo/real opt-in do EV-05/F6 do
   [roteiro de recuperação](../specs/prototype-recovery.md).
 - Legenda: `[x]` concluído com evidência; `[ ]` ainda pendente. Itens parciais descrevem
   explicitamente o que falta.
@@ -59,12 +60,13 @@ validação, siga o [roteiro de testes](prototype-recovery-test-plan.md).
 - [x] CI de pull request e `main` configurada para reutilizar o comando local.
 - [x] Smoke containerizado validou health, capabilities e entrega da SPA.
 - [x] Ruff do backend: `ruff check app tests`.
-- [x] Backend: 97 testes offline passando, incluindo contratos, PostgreSQL, worker, buscas,
+- [x] Backend: 111 testes passando, incluindo contratos, PostgreSQL, worker, buscas, judge,
   proveniência, baselines PDF/CSV/JSON e adaptador Gemini exercitado com cliente falso.
 - [x] Frontend: typecheck e ESLint passando.
-- [x] Frontend: 15 testes passando em 4 arquivos.
+- [x] Frontend: 17 testes passando em 4 arquivos.
 - [x] Build de produção Vite concluído.
-- [x] Smoke HTTP em loopback para health, capabilities, CORS, upload demo e busca lexical.
+- [x] Smoke HTTP em loopback para health, capabilities, CORS, upload demo, busca lexical, insight
+  e judge separado.
 - [x] Upload demo no navegador exibiu seis dimensões.
 - [x] Exportação inspecionada com `simulated: true` e identificação textual de simulação.
 - [x] `git diff --check` sem erro de whitespace.
@@ -210,5 +212,19 @@ e origem, sem LLM ou embedding.
 ## Entregáveis seguintes
 
 - [ ] EV-04 — ampliar formatos conforme demanda: integração CSV/JSON ou OCR de PDF.
-- [ ] EV-05 — judge separado e comparação controlada de pareceres.
+- [ ] EV-05 — concluir qualidade semântica e revisão humana do judge; os modos demo e real opt-in
+  estão implementados e cobertos sem rede.
 - [ ] EV-06 — versão demonstrável, reproduzível e preparada tecnicamente para registro.
+
+## Implementação funcional — EV-05
+
+- [x] Registrar system design e especificação rastreável próprios.
+- [x] Congelar o parecer fonte, seu hash e exatamente os trechos citados antes de enfileirar.
+- [x] Persistir fila, estados, idempotência e resultado sem alterar `evaluation_runs`.
+- [x] Validar dimensões e evidências dos achados contra o snapshot.
+- [x] Integrar worker demo e Gemini com modelo distinto, saída estruturada e failover só por quota.
+- [x] Exigir consentimento e configuração válida antes de enfileirar o modo real.
+- [x] Executar, acompanhar e exportar o judge na tela de avaliação.
+- [x] Validar PostgreSQL, API, componente, smoke, backup/restore e reinício do worker.
+- [ ] Executar smoke real opt-in com fixture autorizada e quota conferida.
+- [ ] Validar qualidade semântica com corpus autorizado e amostra humana.

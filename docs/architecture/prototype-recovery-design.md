@@ -1,8 +1,8 @@
 # Desenho proposto para recuperação do protótipo QA Method
 
-- Status: `parcialmente implementado` — F1–F5 descrevem o runtime até o EV-03; F6/F7 permanecem
-  como alvo.
-- Última atualização: 2026-09-15.
+- Status: `parcialmente implementado` — F1–F5 descrevem o runtime até o EV-03; o judge demo/real
+  opt-in do EV-05/F6 está implementado e a validação semântica e F7 permanecem como alvo.
+- Última atualização: 2026-09-16.
 - Especificação relacionada: [roteiro de recuperação](../specs/prototype-recovery.md).
 - Decisões relacionadas: [execução e testes com Compose](../decisions/containerized-development-and-testing.md), além do
   [arquivamento dos notebooks da POC](../decisions/archive-poc-notebooks.md), da
@@ -199,14 +199,20 @@ continuam como alvo das fases seguintes.
 | `GET /api/v1/documents/{id}` | Estado e metadados da revisão |
 | `GET /api/v1/documents/{id}/units` | Inspecionar unidades extraídas |
 | `GET /api/v1/documents/{id}/pages` | Inspecionar cobertura e sinais conservadores da extração por página |
-| `POST /api/v1/runs` | Solicitar extração, avaliação ou judge com parâmetros validados |
+| `POST /api/v1/runs` | Solicitar avaliação com parâmetros validados |
 | `GET /api/v1/runs` | Listar runs recentes, opcionalmente filtrados por documento |
 | `GET /api/v1/runs/{id}` | Estado, métricas e referência ao resultado |
 | `GET /api/v1/runs/{id}/result` | Resultado validado ou motivo de indisponibilidade |
+| `POST /api/v1/judge-runs` | Congelar um parecer concluído e solicitar judge separado |
+| `GET /api/v1/judge-runs` | Listar judges recentes e filtrar pelo parecer fonte |
+| `GET /api/v1/judge-runs/{id}` | Consultar estado e configuração do judge |
+| `GET /api/v1/judge-runs/{id}/result` | Abrir snapshot, achados validados e Markdown do judge |
 | `POST /api/v1/search` | Recuperar evidências, sem geração de resposta obrigatória |
 | `GET /api/v1/experiments/{id}` | Consultar comparação persistida |
 
-Criar/listar experimentos e exportar resultados entram no contrato detalhado da fase correspondente.
+Criar/listar experimentos entra no contrato detalhado da fase correspondente. Os endpoints de
+judge estão implementados nos modos demo offline e real opt-in conforme o
+[desenho próprio](judge-runs-design.md); validação semântica permanece fora desse contrato.
 Não publicar endpoints vazios só para completar esta tabela. Polling é suficiente inicialmente;
 streaming de progresso será opcional, sem depender dele para preservar o resultado.
 

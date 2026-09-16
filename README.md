@@ -22,6 +22,8 @@ Os arquivos usam nomes em inglês, minúsculos e em `kebab-case`. `README.md` é
   PostgreSQL + pgvector.
 - [Insights RAG](./docs/architecture/rag-insights-design.md): pacote congelado, fila, geração
   citável e limites do EV-03.
+- [Judge separado](./docs/architecture/judge-runs-design.md): segundo modelo opt-in sobre parecer e
+  evidências congeladas, com fila e achados rastreáveis do EV-05.
 
 ## Desenhos propostos
 
@@ -66,6 +68,8 @@ Os arquivos usam nomes em inglês, minúsculos e em `kebab-case`. `README.md` é
 - [Roteiro de recuperação do protótipo](./docs/specs/prototype-recovery.md): fases, tarefas,
   critérios de aceite, interface do laboratório e preparação para registro de software.
 - [Insights RAG rastreáveis](./docs/specs/rag-insights.md): contrato e aceite do EV-03.
+- [Judge separado de pareceres](./docs/specs/judge-runs.md): contrato e aceite dos modos demo e real
+  opt-in do EV-05.
 
 ## Regra de ownership documental
 

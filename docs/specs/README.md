@@ -13,3 +13,5 @@ devem apontar para a sucessora.
   recuperar a execução, testar recursos gratuitos e preparar a versão documental.
 - [Insights RAG rastreáveis](rag-insights.md): pergunta única, pacote congelado de evidências,
   geração citável e exportação do EV-03.
+- [Judge separado de pareceres](judge-runs.md): parecer e evidências congelados, achados
+  rastreáveis e modos demo/real opt-in do EV-05.

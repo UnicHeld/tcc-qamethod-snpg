@@ -271,6 +271,9 @@ página anotada em top-1, mediu 44,907 s na primeira consulta e 0,034 s na reuti
 
 #### EV-05 — verificar e comparar pareceres
 
+- **Status:** modos demo e real opt-in implementados em 2026-09-16; smoke real, qualidade semântica
+  e amostra humana permanecem pendentes.
+
 - **Demonstração:** congelar um parecer com erro controlado, executar judge e abrir o achado separado
   ao lado de outro run comparável.
 - **Pronto quando:** judge, evidências, configuração e exportação forem persistidos separadamente;
@@ -286,9 +289,11 @@ página anotada em top-1, mediu 44,907 s na primeira consulta e 0,034 s na reuti
 - **Limites:** não inclui publicação, protocolo de registro, escolha de licença, commit ou tag sem
   autorização explícita.
 
-**Entregável corrente: EV-03.** O código congela a recuperação como entrada de uma geração RAG
-citável sem alterar a rubrica. PostgreSQL, Compose, smoke e backup/restore passaram; a promoção
-final depende do walkthrough visual e do teste real opt-in da [especificação própria](rag-insights.md).
+**Validações correntes:** o EV-03 aguarda somente o teste real opt-in da
+[especificação própria](rag-insights.md). Como o EV-04 depende de escolha de demanda entre OCR e
+CSV/JSON, avançou-se o EV-05 funcional: judge separado demo/real opt-in, com parecer e evidências
+congelados, fila, API, interface e exportações conforme sua [especificação](judge-runs.md). Qualidade
+semântica e teste real do provedor continuam pendentes.
 
 ### Visão geral e dependências
 
@@ -470,8 +475,8 @@ Evidências da F3a: `tests/test_documents_api.py` cobre o contrato HTTP com reab
 typecheck, ESLint, Vitest, builds e smoke da stack incluindo a listagem persistente. O projeto e o
 volume PostgreSQL de teste foram removidos ao final.
 
-Gate: AC-007, AC-008, AC-012 e AC-014. O laboratório deve manter a avaliação básica utilizável
-mesmo com busca, OCR e judge ainda indisponíveis.
+Gate histórico da F3a: AC-007, AC-008, AC-012 e AC-014. Naquela fatia, o laboratório deveria manter
+a avaliação básica utilizável mesmo com busca, OCR e judge ainda indisponíveis.
 
 #### Fatia F3b — runs persistidos e worker local
 
@@ -949,5 +954,6 @@ texto para impedir sucesso truncado e passou a JSON completo; a API persistente 
 ser o caminho da interface na F3. A persistência PostgreSQL de documentos iniciou na F3a, os
 runs/worker na F3b, a interface persistente na F3c, a comparação/recuperação operacional na F3d, a
 extração experimental nas F4a–F4c e as buscas EV-01/EV-02 e os insights EV-03 na F5. A rota
-provisória permanece apenas para compatibilidade; OCR, judge, estabilização final, teste real do
-insight e walkthrough ampliado das telas anteriores ainda estão pendentes.
+provisória permanece apenas para compatibilidade; OCR, validação semântica e smoke real do judge,
+estabilização final, teste real do insight e walkthrough ampliado das telas anteriores ainda estão
+pendentes.
