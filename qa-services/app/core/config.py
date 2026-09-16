@@ -10,6 +10,11 @@ DEFAULT_MAX_PAGES = 300
 DEFAULT_PARSE_TIMEOUT_SECONDS = 60
 DEFAULT_LLM_TIMEOUT_SECONDS = 180
 DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
+DEFAULT_EMBEDDING_DIMENSION = 384
+DEFAULT_EMBEDDING_CHUNK_VERSION = "document-unit-v1"
+DEFAULT_EMBEDDING_MAX_TOKENS = 384
+DEFAULT_EMBEDDING_OVERLAP_TOKENS = 64
 DEFAULT_CORS_ORIGINS = (
     "http://127.0.0.1:5173",
     "http://localhost:5173",
@@ -42,6 +47,18 @@ def _csv_from_env(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
     return values
 
 
+def _bool_from_env(name: str, default: bool) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    normalized = raw_value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} deve ser verdadeiro ou falso.")
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     project_name: str = "QA Method"
@@ -52,11 +69,30 @@ class Settings:
     parse_timeout_seconds: int = DEFAULT_PARSE_TIMEOUT_SECONDS
     llm_timeout_seconds: int = DEFAULT_LLM_TIMEOUT_SECONDS
     gemini_model: str = DEFAULT_GEMINI_MODEL
+    vector_search_enabled: bool = False
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL
+    embedding_dimension: int = DEFAULT_EMBEDDING_DIMENSION
+    embedding_chunk_version: str = DEFAULT_EMBEDDING_CHUNK_VERSION
+    embedding_max_tokens: int = DEFAULT_EMBEDDING_MAX_TOKENS
+    embedding_overlap_tokens: int = DEFAULT_EMBEDDING_OVERLAP_TOKENS
+    embedding_cache_dir: str | None = None
     allowed_gemini_models: tuple[str, ...] = (DEFAULT_GEMINI_MODEL,)
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
     database_url: str | None = field(default=None, repr=False)
     google_api_key: str | None = field(default=None, repr=False)
     gemini_fallback_api_key: str | None = field(default=None, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.embedding_dimension != DEFAULT_EMBEDDING_DIMENSION:
+            raise ValueError(
+                f"QA_EMBEDDING_DIMENSION deve ser {DEFAULT_EMBEDDING_DIMENSION} no perfil atual."
+            )
+        if self.embedding_overlap_tokens >= self.embedding_max_tokens:
+            raise ValueError(
+                "QA_EMBEDDING_OVERLAP_TOKENS deve ser menor que QA_EMBEDDING_MAX_TOKENS."
+            )
+        if not self.embedding_chunk_version.strip():
+            raise ValueError("QA_EMBEDDING_CHUNK_VERSION não pode ser vazia.")
 
     @property
     def real_mode_unavailable_reason(self) -> str | None:
@@ -90,6 +126,21 @@ def get_settings() -> Settings:
             "QA_LLM_TIMEOUT_SECONDS", DEFAULT_LLM_TIMEOUT_SECONDS
         ),
         gemini_model=gemini_model,
+        vector_search_enabled=_bool_from_env("QA_VECTOR_SEARCH_ENABLED", False),
+        embedding_model=os.getenv("QA_EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL),
+        embedding_dimension=_positive_int_from_env(
+            "QA_EMBEDDING_DIMENSION", DEFAULT_EMBEDDING_DIMENSION
+        ),
+        embedding_chunk_version=os.getenv(
+            "QA_EMBEDDING_CHUNK_VERSION", DEFAULT_EMBEDDING_CHUNK_VERSION
+        ),
+        embedding_max_tokens=_positive_int_from_env(
+            "QA_EMBEDDING_MAX_TOKENS", DEFAULT_EMBEDDING_MAX_TOKENS
+        ),
+        embedding_overlap_tokens=_positive_int_from_env(
+            "QA_EMBEDDING_OVERLAP_TOKENS", DEFAULT_EMBEDDING_OVERLAP_TOKENS
+        ),
+        embedding_cache_dir=os.getenv("QA_EMBEDDING_CACHE_DIR"),
         allowed_gemini_models=allowed_models,
         cors_origins=_csv_from_env("QA_CORS_ORIGINS", DEFAULT_CORS_ORIGINS),
         database_url=os.getenv("DATABASE_URL"),

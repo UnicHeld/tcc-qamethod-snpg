@@ -5,6 +5,7 @@ description = "API local do laboratório QA Method"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.116,<1",
+    "fastembed>=0.7,<1",
     "google-genai>=1.30,<2",
     "psycopg[binary]>=3.2,<4",
     "pypdf>=6,<7",

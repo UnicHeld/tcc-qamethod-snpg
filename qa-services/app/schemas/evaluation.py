@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -64,8 +65,18 @@ class Capability(BaseModel):
     requires_external_confirmation: bool
 
 
+class RetrievalCapability(BaseModel):
+    mode: Literal["lexical", "vector"]
+    label: str
+    available: bool
+    reason: str | None = None
+    model: str | None = None
+    dimension: int | None = Field(default=None, gt=0)
+
+
 class CapabilitiesResponse(BaseModel):
     default_mode: EvaluationMode
     max_upload_bytes: int = Field(gt=0)
     max_pages: int = Field(gt=0)
     capabilities: list[Capability]
+    retrieval_capabilities: list[RetrievalCapability]

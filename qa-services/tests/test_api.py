@@ -41,6 +41,9 @@ def test_health_and_capabilities_boot_without_credentials(monkeypatch) -> None:
     assert capabilities["capabilities"][0]["available"] is True
     assert capabilities["capabilities"][1]["available"] is False
     assert "Configure" in capabilities["capabilities"][1]["reason"]
+    assert capabilities["retrieval_capabilities"][0]["mode"] == "lexical"
+    assert capabilities["retrieval_capabilities"][1]["mode"] == "vector"
+    assert capabilities["retrieval_capabilities"][1]["available"] is False
 
 
 def test_demo_upload_returns_a_marked_deterministic_result() -> None:

@@ -86,6 +86,30 @@ def create_run(url: str, document_id: str, idempotency_key: str) -> dict[str, ob
         return json.loads(response.read())
 
 
+def create_insight(url: str, document_id: str, idempotency_key: str) -> dict[str, object]:
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(
+            {
+                "document_id": document_id,
+                "question": "worker persistente",
+                "retrieval_mode": "lexical",
+                "retrieval_limit": 5,
+                "mode": "demo",
+            }
+        ).encode(),
+        headers={
+            "Content-Type": "application/json",
+            "Idempotency-Key": idempotency_key,
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        if response.status != 202:
+            raise RuntimeError(f"A criação do insight respondeu HTTP {response.status}.")
+        return json.loads(response.read())
+
+
 def search_document(url: str, document_id: str, query: str) -> dict[str, object]:
     request = urllib.request.Request(
         url,
@@ -157,6 +181,37 @@ result = json.loads(read_text(f"{api_url}/api/v1/runs/{run['id']}/result"))
 if len(result["report"]["dimensions"]) != 6:
     raise RuntimeError("O resultado persistido não contém as seis dimensões.")
 
+insight_key = f"compose-insight-{uuid4().hex}"
+insight = create_insight(
+    f"{api_url}/api/v1/insights", str(document["id"]), insight_key
+)
+insight_duplicate = create_insight(
+    f"{api_url}/api/v1/insights", str(document["id"]), insight_key
+)
+if insight_duplicate["id"] != insight["id"]:
+    raise RuntimeError("A submissão idempotente criou insights diferentes.")
+
+for _ in range(40):
+    insight = json.loads(read_text(f"{api_url}/api/v1/insights/{insight['id']}"))
+    if insight["status"] not in {"queued", "running"}:
+        break
+    time.sleep(0.25)
+if insight["status"] != "succeeded":
+    raise RuntimeError(
+        "O worker encerrou o insight com estado "
+        f"{insight['status']}: {insight.get('error_code')} - "
+        f"{insight.get('error_message')}"
+    )
+
+insight_result = json.loads(
+    read_text(f"{api_url}/api/v1/insights/{insight['id']}/result")
+)
+if insight_result["report"].get("citation_ids") != ["E1"]:
+    raise RuntimeError("O insight demo não preservou a citação congelada.")
+evidence = insight_result["evidence_package"].get("items", [])
+if len(evidence) != 1 or evidence[0].get("page") != 1:
+    raise RuntimeError("O pacote RAG não preservou página e evidência recuperada.")
+
 index = read_text(web_url)
 if '<div id="root"></div>' not in index:
     raise RuntimeError("A interface não entregou o ponto de montagem React esperado.")
@@ -168,5 +223,9 @@ if '<div id="root"></div>' not in evaluation_route:
 search_route = read_text(f"{web_url}/search")
 if '<div id="root"></div>' not in search_route:
     raise RuntimeError("O fallback de rotas da SPA não respondeu em /search.")
+
+insights_route = read_text(f"{web_url}/insights")
+if '<div id="root"></div>' not in insights_route:
+    raise RuntimeError("O fallback de rotas da SPA não respondeu em /insights.")
 
 print("Smoke test dos contêineres concluído com sucesso.")

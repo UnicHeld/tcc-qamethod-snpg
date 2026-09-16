@@ -6,7 +6,10 @@ import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import {
   DocumentRecord,
+  RetrievalCapability,
+  RetrievalMode,
   SearchResponse,
+  getCapabilities,
   listDocuments,
   searchDocument,
 } from '../lib/api';
@@ -19,7 +22,9 @@ export default function Search() {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [documentId, setDocumentId] = useState('');
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState<SearchResponse | null>(null);
+  const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>('lexical');
+  const [vectorCapability, setVectorCapability] = useState<RetrievalCapability | null>(null);
+  const [results, setResults] = useState<Partial<Record<RetrievalMode, SearchResponse>>>({});
   const [loadingDocuments, setLoadingDocuments] = useState(true);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +56,46 @@ export default function Search() {
     };
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    getCapabilities(controller.signal)
+      .then((capabilities) => {
+        if (!active) {
+          return;
+        }
+        const vector = capabilities.retrieval_capabilities.find(
+          (capability) => capability.mode === 'vector',
+        );
+        setVectorCapability(
+          vector ?? {
+            mode: 'vector',
+            label: 'Vetorial — embedding local',
+            available: false,
+            reason: 'A API não informou a capacidade de busca vetorial.',
+            model: null,
+            dimension: null,
+          },
+        );
+      })
+      .catch((requestError: unknown) => {
+        if (active && !isAbortError(requestError)) {
+          setVectorCapability({
+            mode: 'vector',
+            label: 'Vetorial — embedding local',
+            available: false,
+            reason: 'Não foi possível verificar a disponibilidade da busca vetorial.',
+            model: null,
+            dimension: null,
+          });
+        }
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const normalizedQuery = query.trim();
@@ -61,9 +106,9 @@ export default function Search() {
 
     setSearching(true);
     setError(null);
-    setResult(null);
     try {
-      setResult(await searchDocument(documentId, normalizedQuery));
+      const response = await searchDocument(documentId, normalizedQuery, retrievalMode);
+      setResults((current) => ({ ...current, [retrievalMode]: response }));
     } catch (requestError: unknown) {
       setError(requestError instanceof Error ? requestError.message : 'Falha desconhecida.');
     } finally {
@@ -83,8 +128,8 @@ export default function Search() {
             Encontre evidências no documento
           </h1>
           <p className="mt-4 leading-relaxed text-stone-600">
-            A busca lexical consulta somente o documento escolhido. Ela não usa LLM, embedding ou
-            geração de resposta; cada resultado aponta para uma página extraída.
+            Compare correspondência lexical e semântica no documento escolhido. Nenhum modo gera
+            resposta: cada resultado continua apontando para uma página e unidade extraídas.
           </p>
         </header>
 
@@ -118,7 +163,7 @@ export default function Search() {
                   id="search-document"
                   onChange={(event) => {
                     setDocumentId(event.target.value);
-                    setResult(null);
+                    setResults({});
                     setError(null);
                   }}
                   value={documentId}
@@ -139,12 +184,55 @@ export default function Search() {
                   className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
                   id="search-query"
                   maxLength={200}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    setResults({});
+                  }}
                   placeholder="Ex.: metodologia utilizada"
                   type="search"
                   value={query}
                 />
               </div>
+
+              <fieldset>
+                <legend className="text-sm font-semibold">Modo de recuperação</legend>
+                <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                  <label className="flex cursor-pointer gap-3 rounded-xl border border-stone-300 p-4 has-[:checked]:border-red-700 has-[:checked]:bg-red-50">
+                    <input
+                      checked={retrievalMode === 'lexical'}
+                      className="mt-1"
+                      name="retrieval-mode"
+                      onChange={() => setRetrievalMode('lexical')}
+                      type="radio"
+                    />
+                    <span>
+                      <span className="block font-semibold">Lexical</span>
+                      <span className="text-sm text-stone-600">Termos do texto, sem embedding.</span>
+                    </span>
+                  </label>
+                  <label className="flex gap-3 rounded-xl border border-stone-300 p-4 has-[:checked]:border-red-700 has-[:checked]:bg-red-50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
+                    <input
+                      checked={retrievalMode === 'vector'}
+                      className="mt-1"
+                      disabled={!vectorCapability?.available}
+                      name="retrieval-mode"
+                      onChange={() => {
+                        setRetrievalMode('vector');
+                        setError(null);
+                      }}
+                      type="radio"
+                    />
+                    <span>
+                      <span className="block font-semibold">Vetorial local</span>
+                      <span className="text-sm text-stone-600">
+                        {vectorCapability?.available
+                          ? `${vectorCapability.model} · ${vectorCapability.dimension} dimensões.`
+                          : vectorCapability?.reason ?? 'Verificando disponibilidade…'}
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
 
               <button
                 className="inline-flex items-center gap-2 rounded-lg bg-red-800 px-5 py-2.5 font-semibold text-white transition hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-400"
@@ -152,7 +240,9 @@ export default function Search() {
                 type="submit"
               >
                 <FaMagnifyingGlass aria-hidden="true" />
-                {searching ? 'Buscando…' : 'Buscar evidências'}
+                {searching
+                  ? 'Buscando…'
+                  : `Buscar no modo ${retrievalMode === 'lexical' ? 'lexical' : 'vetorial'}`}
               </button>
             </form>
           )}
@@ -165,50 +255,67 @@ export default function Search() {
             </p>
           ) : null}
 
-          {result ? (
-            <section aria-labelledby="search-results-title">
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-stone-500">
-                    Modo lexical · sem geração
+          {(['lexical', 'vector'] as const).map((mode) => {
+            const result = results[mode];
+            if (!result) {
+              return null;
+            }
+            return (
+              <section
+                aria-labelledby={`search-results-title-${mode}`}
+                className="mt-6"
+                key={mode}
+              >
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+                      Modo {mode === 'lexical' ? 'lexical' : 'vetorial local'} · sem geração
+                    </p>
+                    <h2 className="mt-1 text-2xl font-bold" id={`search-results-title-${mode}`}>
+                      Evidências para “{result.query}”
+                    </h2>
+                    {mode === 'vector' ? (
+                      <p className="mt-2 text-sm text-stone-600">
+                        {result.embedding_model} · {result.embedding_dimension} dimensões ·{' '}
+                        {result.chunk_version}
+                      </p>
+                    ) : null}
+                  </div>
+                  <p className="text-sm text-stone-600">
+                    {result.hits.length} resultado(s)
                   </p>
-                  <h2 className="mt-1 text-2xl font-bold" id="search-results-title">
-                    Evidências para “{result.query}”
-                  </h2>
                 </div>
-                <p className="text-sm text-stone-600">
-                  {result.hits.length} resultado(s)
-                </p>
-              </div>
 
-              {result.hits.length === 0 ? (
-                <p className="mt-5 rounded-xl border border-stone-200 bg-white p-5 text-stone-600">
-                  Nenhuma unidade deste documento corresponde à consulta.
-                </p>
-              ) : (
-                <ol className="mt-5 space-y-4">
-                  {result.hits.map((hit) => (
-                    <li key={hit.unit_id}>
-                      <article className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <h3 className="font-bold">Página {hit.page}</h3>
-                          <span className="text-xs text-stone-500">
-                            Ordenação lexical: {hit.score.toFixed(3)}
-                          </span>
-                        </div>
-                        <p className="mt-3 whitespace-pre-wrap leading-relaxed text-stone-700">
-                          {hit.snippet}
-                        </p>
-                        <p className="mt-3 break-all text-xs text-stone-500">
-                          Evidência: {hit.unit_id}
-                        </p>
-                      </article>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
-          ) : null}
+                {result.hits.length === 0 ? (
+                  <p className="mt-5 rounded-xl border border-stone-200 bg-white p-5 text-stone-600">
+                    Nenhuma unidade deste documento corresponde à consulta.
+                  </p>
+                ) : (
+                  <ol className="mt-5 space-y-4">
+                    {result.hits.map((hit) => (
+                      <li key={`${hit.unit_id}-${hit.snippet}`}>
+                        <article className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="font-bold">Página {hit.page}</h3>
+                            <span className="text-xs text-stone-500">
+                              Relevância {mode === 'lexical' ? 'lexical' : 'vetorial'}:{' '}
+                              {hit.score.toFixed(3)}
+                            </span>
+                          </div>
+                          <p className="mt-3 whitespace-pre-wrap leading-relaxed text-stone-700">
+                            {hit.snippet}
+                          </p>
+                          <p className="mt-3 break-all text-xs text-stone-500">
+                            Evidência: {hit.unit_id}
+                          </p>
+                        </article>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            );
+          })}
         </div>
       </main>
       <Footer />

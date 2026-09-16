@@ -2,8 +2,13 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import Settings, get_settings
-from app.routers import documents, evaluation, runs, search
-from app.schemas.evaluation import CapabilitiesResponse, Capability, EvaluationMode
+from app.routers import documents, evaluation, insights, runs, search
+from app.schemas.evaluation import (
+    CapabilitiesResponse,
+    Capability,
+    EvaluationMode,
+    RetrievalCapability,
+)
 
 
 def create_app() -> FastAPI:
@@ -22,6 +27,9 @@ def create_app() -> FastAPI:
     )
     application.include_router(runs.router, prefix="/api/v1/runs", tags=["runs"])
     application.include_router(search.router, prefix="/api/v1/search", tags=["search"])
+    application.include_router(
+        insights.router, prefix="/api/v1/insights", tags=["insights"]
+    )
 
     @application.get("/health")
     async def health() -> dict[str, str]:
@@ -57,6 +65,35 @@ def create_app() -> FastAPI:
                     provider="google-gemini",
                     model=current_settings.gemini_model,
                     requires_external_confirmation=True,
+                ),
+            ],
+            retrieval_capabilities=[
+                RetrievalCapability(
+                    mode="lexical",
+                    label="Lexical — índice textual PostgreSQL",
+                    available=current_settings.database_url is not None,
+                    reason=(
+                        None
+                        if current_settings.database_url
+                        else "Configure DATABASE_URL para pesquisar documentos persistidos."
+                    ),
+                    model="postgresql-portuguese-fts",
+                ),
+                RetrievalCapability(
+                    mode="vector",
+                    label="Vetorial — embedding local",
+                    available=(
+                        current_settings.database_url is not None
+                        and current_settings.vector_search_enabled
+                    ),
+                    reason=(
+                        None
+                        if current_settings.database_url
+                        and current_settings.vector_search_enabled
+                        else "Ative o perfil vetorial local e configure o PostgreSQL com pgvector."
+                    ),
+                    model=current_settings.embedding_model,
+                    dimension=current_settings.embedding_dimension,
                 ),
             ],
         )

@@ -7,7 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 RUN groupadd --system --gid 10001 qa-method \
-    && useradd --system --uid 10001 --gid qa-method --home-dir /app qa-method
+    && useradd --system --uid 10001 --gid qa-method --home-dir /app qa-method \
+    && mkdir -p /var/lib/qa-method/embeddings \
+    && chown -R qa-method:qa-method /var/lib/qa-method
 
 COPY requirements.txt ./
 RUN python -m pip install --no-cache-dir --requirement requirements.txt

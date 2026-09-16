@@ -5,6 +5,7 @@ import psycopg
 from app.core.config import get_settings
 
 MIGRATIONS_DIRECTORY = Path(__file__).parent.parent / "migrations"
+OPTIONAL_MIGRATION_SUFFIX = ".pgvector.sql"
 
 
 def apply_migrations(database_url: str) -> None:
@@ -26,6 +27,12 @@ def apply_migrations(database_url: str) -> None:
         for migration_path in migration_paths:
             if migration_path.name in applied:
                 continue
+            if migration_path.name.endswith(OPTIONAL_MIGRATION_SUFFIX):
+                available = connection.execute(
+                    "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'vector')"
+                ).fetchone()
+                if not available or not available[0]:
+                    continue
             connection.execute(migration_path.read_text(encoding="utf-8"))
             connection.execute(
                 "INSERT INTO schema_migrations (version) VALUES (%s)",

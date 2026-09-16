@@ -1,0 +1,7 @@
+services:
+  api:
+    environment:
+      QA_VECTOR_SEARCH_ENABLED: "true"
+  worker:
+    environment:
+      QA_VECTOR_SEARCH_ENABLED: "true"

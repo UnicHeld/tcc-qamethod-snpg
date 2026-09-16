@@ -15,6 +15,18 @@ export interface CapabilitiesResponse {
   max_upload_bytes: number;
   max_pages: number;
   capabilities: Capability[];
+  retrieval_capabilities: RetrievalCapability[];
+}
+
+export type RetrievalMode = 'lexical' | 'vector';
+
+export interface RetrievalCapability {
+  mode: RetrievalMode;
+  label: string;
+  available: boolean;
+  reason: string | null;
+  model: string | null;
+  dimension: number | null;
 }
 
 export interface DocumentRecord {
@@ -46,8 +58,38 @@ export interface SearchHitRecord {
 export interface SearchResponse {
   document_id: string;
   query: string;
-  retrieval_mode: 'lexical';
+  retrieval_mode: RetrievalMode;
+  embedding_model: string | null;
+  embedding_dimension: number | null;
+  chunk_version: string | null;
   hits: SearchHitRecord[];
+}
+
+export interface EvidenceItemRecord {
+  id: string;
+  unit_id: string;
+  page: number;
+  text: string;
+  score: number;
+}
+
+export interface EvidencePackageRecord {
+  document_id: string;
+  revision_sha256: string;
+  question: string;
+  retrieval_mode: RetrievalMode;
+  embedding_model: string | null;
+  embedding_dimension: number | null;
+  chunk_version: string | null;
+  items: EvidenceItemRecord[];
+}
+
+export interface InsightReport {
+  revision_sha256: string;
+  simulated: boolean;
+  question: string;
+  answer: string;
+  citation_ids: string[];
 }
 
 export type RunStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'interrupted';
@@ -94,6 +136,35 @@ export interface EvaluationReport {
 export interface RunResult {
   run_id: string;
   report: EvaluationReport;
+  result_markdown: string;
+}
+
+export interface InsightRunRecord {
+  id: string;
+  document_id: string;
+  question: string;
+  retrieval_mode: RetrievalMode;
+  retrieval_limit: number;
+  mode: EvaluationMode;
+  provider: string;
+  model: string;
+  prompt_version: string;
+  status: RunStatus;
+  usage_kind: 'simulated' | 'actual' | 'estimated' | 'unknown' | null;
+  credential_slot: 'primary' | 'fallback' | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  error_code: string | null;
+  error_message: string | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+export interface InsightResult {
+  insight_id: string;
+  evidence_package: EvidencePackageRecord;
+  report: InsightReport;
   result_markdown: string;
 }
 
@@ -176,13 +247,19 @@ export async function getDocumentPages(
 export async function searchDocument(
   documentId: string,
   query: string,
+  retrievalMode: RetrievalMode = 'lexical',
   limit = 10,
   signal?: AbortSignal,
 ): Promise<SearchResponse> {
   const response = await fetch(`${API_BASE_URL}/api/v1/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ document_id: documentId, query, limit }),
+    body: JSON.stringify({
+      document_id: documentId,
+      query,
+      limit,
+      retrieval_mode: retrievalMode,
+    }),
     signal,
   });
   if (!response.ok) {
@@ -238,4 +315,65 @@ export async function getRunResult(runId: string, signal?: AbortSignal): Promise
     throw await responseError(response);
   }
   return (await response.json()) as RunResult;
+}
+
+export async function createInsight(
+  documentId: string,
+  question: string,
+  retrievalMode: RetrievalMode,
+  retrievalLimit: number,
+  mode: EvaluationMode,
+  confirmExternalProcessing: boolean,
+  idempotencyKey: string,
+): Promise<InsightRunRecord> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/insights`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Idempotency-Key': idempotencyKey,
+    },
+    body: JSON.stringify({
+      document_id: documentId,
+      question,
+      retrieval_mode: retrievalMode,
+      retrieval_limit: retrievalLimit,
+      mode,
+      confirm_external_processing: confirmExternalProcessing,
+    }),
+  });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  return (await response.json()) as InsightRunRecord;
+}
+
+export async function listInsights(signal?: AbortSignal): Promise<InsightRunRecord[]> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/insights`, { signal });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  const payload = (await response.json()) as { insights: InsightRunRecord[] };
+  return payload.insights;
+}
+
+export async function getInsight(
+  insightId: string,
+  signal?: AbortSignal,
+): Promise<InsightRunRecord> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/insights/${insightId}`, { signal });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  return (await response.json()) as InsightRunRecord;
+}
+
+export async function getInsightResult(
+  insightId: string,
+  signal?: AbortSignal,
+): Promise<InsightResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/insights/${insightId}/result`, { signal });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  return (await response.json()) as InsightResult;
 }

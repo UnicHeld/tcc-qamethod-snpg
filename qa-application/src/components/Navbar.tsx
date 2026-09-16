@@ -22,6 +22,9 @@ export default function Navbar() {
           <NavLink className={linkClassName} to="/search">
             Busca
           </NavLink>
+          <NavLink className={linkClassName} to="/insights">
+            Insights
+          </NavLink>
         </div>
       </div>
     </nav>
