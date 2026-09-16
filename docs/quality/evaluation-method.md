@@ -45,5 +45,6 @@ serem integradas. Ver `docs/quality/rag-validation.md`.
 - A qualidade da análise depende da qualidade da extração de texto do PDF.
 - PDFs com imagens, tabelas ou formatação complexa podem gerar extração incompleta.
 - O modo demo é simulado, não usa esse prompt para inferência e não mede qualidade acadêmica.
-- A avaliação web atual usa o documento direto; RAG ainda não está conectado.
+- A avaliação web usa o documento direto. O insight RAG do EV-03 possui contrato separado e não
+  altera notas, dimensões ou este prompt.
 - O LLM pode variar entre execuções mesmo com `temperature=0.1`.

@@ -3,8 +3,9 @@
 Interface React/Vite do laboratório local QA Method. A rota `/evaluation` permite selecionar um
 PDF digital, escolher o modo demo ou real autorizado, executar a avaliação e exportar o resultado
 estruturado em JSON. A tela persiste documentos e runs, acompanha o worker, mantém o run na URL e
-lista execuções recentes para reabertura após reload. A rota `/search` pesquisa evidências nas
-unidades de um documento persistido e mostra trecho, página e origem sem LLM ou embedding.
+lista execuções recentes para reabertura após reload. A rota `/search` compara recuperação lexical
+e vetorial. A rota `/insights` cria uma pergunta persistente, acompanha o worker e apresenta uma
+resposta baseada no pacote congelado, com página, origem e exportações JSON/Markdown.
 
 ## Execução
 
@@ -39,7 +40,8 @@ npm run build
 ```
 
 O modo demo não exige credenciais e deve aparecer sempre como “Simulado — sem inferência LLM”.
-A busca lexical está disponível; busca vetorial/RAG e judge ainda são recursos planejados. Runs
+A busca lexical está disponível e a vetorial é opt-in. Insights RAG possuem fluxo próprio; judge
+ainda é planejado. Runs
 concluídos do mesmo documento podem ser comparados de forma descritiva e exportados em JSON ou Markdown.
 Na avaliação persistente, a interface também mostra cobertura de texto por página e sinaliza
 candidatas a OCR ou páginas sem texto detectado, sem executar OCR implicitamente.

@@ -18,11 +18,23 @@ Os arquivos usam nomes em inglês, minúsculos e em `kebab-case`. `README.md` é
 
 - [Conceitos fundamentais](./docs/architecture/fundamental-concepts.md): escopo, componentes e responsabilidades.
 - [Pipeline de avaliação](./docs/architecture/evaluation-pipeline.md): fluxo ponta a ponta de um documento.
-- [Pipeline RAG](./docs/architecture/rag-pipeline.md): indexação, recuperação e geração com Qdrant.
+- [Pipeline RAG](./docs/architecture/rag-pipeline.md): indexação, recuperação e geração com
+  PostgreSQL + pgvector.
+- [Insights RAG](./docs/architecture/rag-insights-design.md): pacote congelado, fila, geração
+  citável e limites do EV-03.
+
+## Desenhos propostos
+
+- [Recuperação do protótipo](./docs/architecture/prototype-recovery-design.md): arquitetura alvo local,
+  modular e sem SaaS; não descreve funcionalidades já implementadas.
 
 ## Operação
 
 - [Configuração local](./docs/operations/local-setup.md): ambiente virtual, variáveis e execução.
+- [Checklist da recuperação](./docs/operations/prototype-recovery-checklist.md): entregas concluídas,
+  itens parciais e próximos entregáveis de valor.
+- [Roteiro de testes da recuperação](./docs/operations/prototype-recovery-test-plan.md): validação
+  reproduzível do backend, frontend, API e walkthrough manual.
 
 ## Qualidade
 
@@ -31,6 +43,16 @@ Os arquivos usam nomes em inglês, minúsculos e em `kebab-case`. `README.md` é
 
 ## Decisões
 
+- [Notebooks históricos da POC](./docs/decisions/archive-poc-notebooks.md): preservados para
+  consulta, mas excluídos do produto, build, lint, testes e métricas vigentes.
+- [Execução e testes com Compose](./docs/decisions/containerized-development-and-testing.md):
+  imagens, perfis, isolamento offline e reutilização do mesmo comando na CI.
+- [Persistência PostgreSQL](./docs/decisions/postgresql-local-persistence.md): banco local,
+  migrações e integração incremental do pgvector entregue no EV-02.
+- [Recuperação vetorial local](./docs/decisions/local-vector-retrieval.md): FastEmbed, perfil E5,
+  chunks versionados e isolamento do fallback lexical.
+- [Failover Gemini](./docs/decisions/gemini-credential-failover.md): uso restrito da credencial
+  reserva após esgotamento de quota da principal.
 - [Escolha do LLM avaliador](./docs/decisions/evaluator-llm-selection.md): critérios e alternativas consideradas.
 
 ## Processos
@@ -41,6 +63,9 @@ Os arquivos usam nomes em inglês, minúsculos e em `kebab-case`. `README.md` é
 ## Especificações
 
 - [Índice e convenções](./docs/specs/README.md): ciclo de vida e nomenclatura das especificações.
+- [Roteiro de recuperação do protótipo](./docs/specs/prototype-recovery.md): fases, tarefas,
+  critérios de aceite, interface do laboratório e preparação para registro de software.
+- [Insights RAG rastreáveis](./docs/specs/rag-insights.md): contrato e aceite do EV-03.
 
 ## Regra de ownership documental
 

@@ -1,7 +1,7 @@
 # Validação RAG
 
-- Estado: baseline lexical EV-01 implementado; métricas de recuperação semântica e de geração ainda
-  não reproduzidas no pipeline atual.
+- Estado: baselines funcionais lexical EV-01 e vetorial EV-02 executados; EV-03 valida contratos de
+  geração/citação offline, mas qualidade semântica ainda não foi medida.
 
 ## Objetivo
 
@@ -30,7 +30,10 @@ O EV-01 valida com fixture sintética que uma consulta lexical recupera a unidad
 documento correto, com página e ID determinísticos. Isso comprova o contrato funcional, não a
 qualidade geral de relevância.
 
-No EV-02, métricas como Precision@K e Recall@K serão recriadas em código versionado, com corpus
-autorizado, fixtures anotadas e execução automatizada pelos targets Docker. Alterações de K,
-métrica, embedding ou chunk serão comparadas por esse pipeline, sem depender dos notebooks
-históricos.
+O baseline EV-02 possui uma consulta sintética anotada com Recall@1 igual a 1,0; isso comprova
+integração e recuperabilidade, não generalização. Métricas amplas ainda exigem corpus autorizado,
+várias consultas anotadas e revisão humana.
+
+No EV-03, testes verificam que a geração recebe apenas o pacote congelado, que toda citação resolve
+para `E1..En` e que zero hits ou citação inexistente não publicam resposta. Ainda faltam avaliação
+humana de fundamentação, precisão das respostas e comparação controlada com leitura direta.

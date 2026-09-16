@@ -9,4 +9,7 @@ devem apontar para a sucessora.
 
 ## Índice
 
-Ainda não há especificações de funcionalidades registradas.
+- [Recuperação e evolução do protótipo](prototype-recovery.md): roteiro em implementação para
+  recuperar a execução, testar recursos gratuitos e preparar a versão documental.
+- [Insights RAG rastreáveis](rag-insights.md): pergunta única, pacote congelado de evidências,
+  geração citável e exportação do EV-03.
