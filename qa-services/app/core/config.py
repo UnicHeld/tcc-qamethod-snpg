@@ -69,6 +69,7 @@ class Settings:
     parse_timeout_seconds: int = DEFAULT_PARSE_TIMEOUT_SECONDS
     llm_timeout_seconds: int = DEFAULT_LLM_TIMEOUT_SECONDS
     gemini_model: str = DEFAULT_GEMINI_MODEL
+    gemini_judge_model: str | None = None
     vector_search_enabled: bool = False
     embedding_model: str = DEFAULT_EMBEDDING_MODEL
     embedding_dimension: int = DEFAULT_EMBEDDING_DIMENSION
@@ -102,6 +103,18 @@ class Settings:
             return "Configure GEMINI_API_KEY ou GOOGLE_API_KEY no backend."
         return None
 
+    @property
+    def judge_real_mode_unavailable_reason(self) -> str | None:
+        if not self.gemini_judge_model:
+            return "Configure QA_JUDGE_GEMINI_MODEL no backend."
+        if self.gemini_judge_model == self.gemini_model:
+            return "O judge real deve usar um modelo diferente do avaliador."
+        if self.gemini_judge_model not in self.allowed_gemini_models:
+            return "O modelo do judge não está na allowlist local."
+        if not self.google_api_key:
+            return "Configure GEMINI_API_KEY ou GOOGLE_API_KEY no backend."
+        return None
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -126,6 +139,7 @@ def get_settings() -> Settings:
             "QA_LLM_TIMEOUT_SECONDS", DEFAULT_LLM_TIMEOUT_SECONDS
         ),
         gemini_model=gemini_model,
+        gemini_judge_model=os.getenv("QA_JUDGE_GEMINI_MODEL"),
         vector_search_enabled=_bool_from_env("QA_VECTOR_SEARCH_ENABLED", False),
         embedding_model=os.getenv("QA_EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL),
         embedding_dimension=_positive_int_from_env(

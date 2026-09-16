@@ -70,6 +70,27 @@ const capabilities = {
       requires_external_confirmation: true,
     },
   ],
+  judge_capabilities: [
+    {
+      mode: 'demo',
+      label: 'Simulado — validação técnica sem inferência LLM',
+      available: true,
+      reason: null,
+      provider: 'local',
+      model: 'deterministic-judge-demo-v1',
+      requires_external_confirmation: false,
+    },
+    {
+      mode: 'real',
+      label: 'LLM as judge — inferência externa autorizada',
+      available: false,
+      reason: 'Configure QA_JUDGE_GEMINI_MODEL no backend.',
+      provider: 'google-gemini',
+      model: 'não configurado',
+      requires_external_confirmation: true,
+    },
+  ],
+  retrieval_capabilities: [],
 };
 
 function runRecord(
@@ -107,6 +128,59 @@ const runResult = {
     dimensions: [],
   },
   result_markdown: '# Parecer persistido\n\nResultado de teste.',
+};
+
+function judgeRunRecord(
+  status: 'queued' | 'running' | 'succeeded',
+  mode: 'demo' | 'real' = 'demo',
+) {
+  return {
+    id: 'judge-1',
+    source_run_id: 'run-1',
+    document_id: documentRecord.id,
+    mode,
+    provider: mode === 'demo' ? 'local' : 'google-gemini',
+    model: mode === 'demo' ? 'deterministic-judge-demo-v1' : 'judge-model',
+    prompt_version: 'qa-method-judge-v2',
+    status,
+    source_report_sha256: 'b'.repeat(64),
+    usage_kind: status === 'succeeded' ? (mode === 'demo' ? 'simulated' : 'actual') : null,
+    credential_slot: status === 'succeeded' && mode === 'real' ? 'primary' : null,
+    input_tokens: null,
+    output_tokens: null,
+    error_code: null,
+    error_message: null,
+    created_at: '2026-09-16T12:00:00Z',
+    started_at: status === 'queued' ? null : '2026-09-16T12:00:01Z',
+    finished_at: status === 'succeeded' ? '2026-09-16T12:00:02Z' : null,
+  };
+}
+
+const judgeResult = {
+  judge_run_id: 'judge-1',
+  source_report: runResult.report,
+  source_evidence: {
+    document_id: documentRecord.id,
+    revision_sha256: 'a'.repeat(64),
+    source_report_sha256: 'b'.repeat(64),
+    items: [
+      {
+        unit_id: `${'a'.repeat(64)}:page:1`,
+        page: 1,
+        text: 'Evidência congelada.',
+      },
+    ],
+  },
+  report: {
+    source_run_id: 'run-1',
+    source_report_sha256: 'b'.repeat(64),
+    revision_sha256: 'a'.repeat(64),
+    simulated: true,
+    verdict: 'needs_human_review',
+    summary: 'A auditoria determinística exige revisão humana.',
+    findings: [],
+  },
+  result_markdown: '# Auditoria de parecer\n\nFluxo técnico validado.',
 };
 
 function comparisonResult(runId: string, title: string, score: number) {
@@ -346,5 +420,147 @@ describe('Evaluation', () => {
     expect(screen.getByText('Nota 4 — Justificativa 4.')).toBeInTheDocument();
     expect(screen.getByText('Nota 7 — Justificativa 7.')).toBeInTheDocument();
     expect(screen.getByText(/não escolhe vencedor/)).toBeInTheDocument();
+  });
+
+  it('executa o judge demo sobre um snapshot sem alterar o parecer exibido', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      const method = init?.method ?? 'GET';
+      if (url.endsWith('/capabilities')) {
+        return jsonResponse(capabilities);
+      }
+      if (url.endsWith('/api/v1/documents')) {
+        return jsonResponse({ documents: [documentRecord] });
+      }
+      if (url.endsWith('/api/v1/runs')) {
+        return jsonResponse({ runs: [runRecord('succeeded')] });
+      }
+      if (url.endsWith('/api/v1/runs/run-1/result')) {
+        return jsonResponse(runResult);
+      }
+      if (url.endsWith('/api/v1/runs/run-1')) {
+        return jsonResponse(runRecord('succeeded'));
+      }
+      if (url.endsWith('/api/v1/documents/document-1/pages')) {
+        return jsonResponse(extractedPages);
+      }
+      if (url.endsWith('/api/v1/documents/document-1')) {
+        return jsonResponse(documentRecord);
+      }
+      if (url.endsWith('/api/v1/judge-runs') && method === 'POST') {
+        return jsonResponse(judgeRunRecord('queued'), 202);
+      }
+      if (url.endsWith('/api/v1/judge-runs/judge-1/result')) {
+        return jsonResponse(judgeResult);
+      }
+      if (url.endsWith('/api/v1/judge-runs/judge-1')) {
+        return jsonResponse(judgeRunRecord('succeeded'));
+      }
+      throw new Error(`URL inesperada: ${method} ${url}`);
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={['/evaluation?run=run-1']}>
+        <Evaluation />
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Executar judge demo' }));
+
+    expect(await screen.findByText('Fluxo técnico validado.')).toBeInTheDocument();
+    expect(screen.getByText('Parecer persistido')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Exportar judge JSON' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Exportar judge Markdown' })).toBeEnabled();
+    const submission = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).endsWith('/api/v1/judge-runs') && init?.method === 'POST',
+    );
+    expect(JSON.parse(String(submission?.[1]?.body))).toEqual({
+      source_run_id: 'run-1',
+      mode: 'demo',
+      confirm_external_processing: false,
+    });
+    expect(new Headers(submission?.[1]?.headers).get('Idempotency-Key')).not.toBeNull();
+  });
+
+  it('exige consentimento antes de executar LLM as judge com outro modelo', async () => {
+    const realJudgeCapabilities = {
+      ...capabilities,
+      judge_capabilities: capabilities.judge_capabilities.map((capability) =>
+        capability.mode === 'real'
+          ? { ...capability, available: true, reason: null, model: 'judge-model' }
+          : capability,
+      ),
+    };
+    const realJudgeResult = {
+      ...judgeResult,
+      report: { ...judgeResult.report, simulated: false, summary: 'Auditoria real concluída.' },
+    };
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      const method = init?.method ?? 'GET';
+      if (url.endsWith('/capabilities')) {
+        return jsonResponse(realJudgeCapabilities);
+      }
+      if (url.endsWith('/api/v1/documents')) {
+        return jsonResponse({ documents: [documentRecord] });
+      }
+      if (url.endsWith('/api/v1/runs')) {
+        return jsonResponse({ runs: [runRecord('succeeded')] });
+      }
+      if (url.endsWith('/api/v1/runs/run-1/result')) {
+        return jsonResponse(runResult);
+      }
+      if (url.endsWith('/api/v1/runs/run-1')) {
+        return jsonResponse(runRecord('succeeded'));
+      }
+      if (url.endsWith('/api/v1/documents/document-1/pages')) {
+        return jsonResponse(extractedPages);
+      }
+      if (url.endsWith('/api/v1/documents/document-1')) {
+        return jsonResponse(documentRecord);
+      }
+      if (url.endsWith('/api/v1/judge-runs') && method === 'POST') {
+        return jsonResponse(judgeRunRecord('queued', 'real'), 202);
+      }
+      if (url.endsWith('/api/v1/judge-runs/judge-1/result')) {
+        return jsonResponse(realJudgeResult);
+      }
+      if (url.endsWith('/api/v1/judge-runs/judge-1')) {
+        return jsonResponse(judgeRunRecord('succeeded', 'real'));
+      }
+      throw new Error(`URL inesperada: ${method} ${url}`);
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={['/evaluation?run=run-1']}>
+        <Evaluation />
+      </MemoryRouter>,
+    );
+
+    await user.click(
+      await screen.findByRole('radio', { name: /LLM as judge — inferência externa autorizada/ }),
+    );
+    const realButton = screen.getByRole('button', { name: 'Executar LLM as judge' });
+    expect(realButton).toBeDisabled();
+    await user.click(screen.getByLabelText(/Autorizo o envio do parecer congelado/));
+    expect(realButton).toBeEnabled();
+    await user.click(realButton);
+
+    expect(await screen.findByText('Auditoria real concluída.')).toBeInTheDocument();
+    expect(
+      screen.getAllByText('LLM as judge — inferência externa autorizada'),
+    ).toHaveLength(2);
+    const submission = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).endsWith('/api/v1/judge-runs') && init?.method === 'POST',
+    );
+    expect(JSON.parse(String(submission?.[1]?.body))).toEqual({
+      source_run_id: 'run-1',
+      mode: 'real',
+      confirm_external_processing: true,
+    });
   });
 });

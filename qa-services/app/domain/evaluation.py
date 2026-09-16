@@ -53,6 +53,34 @@ DIMENSION_LABELS = {
     Dimension.INTERDISCIPLINARITY: "Interdisciplinaridade",
 }
 
+DIMENSION_CRITERIA = {
+    Dimension.ORIGINALITY: "Contribuição nova e diferença em relação ao estado da arte.",
+    Dimension.RELEVANCE: "Impacto científico, tecnológico, cultural ou social.",
+    Dimension.METHODOLOGY: "Rigor, adequação e reprodutibilidade dos métodos.",
+    Dimension.WRITING: "Clareza, coesão e atendimento às normas acadêmicas.",
+    Dimension.STRUCTURE: "Organização, progressão lógica e completude das seções.",
+    Dimension.INTERDISCIPLINARITY: (
+        "Diálogo com outras áreas e integração de perspectivas."
+    ),
+}
+
+
+def evaluation_rubric_payload() -> dict[str, object]:
+    return {
+        "dimensions": [
+            {
+                "id": dimension.value,
+                "label": DIMENSION_LABELS[dimension],
+                "criteria": DIMENSION_CRITERIA[dimension],
+            }
+            for dimension in Dimension
+        ],
+        "scoring": (
+            "Cada dimensão recebe nota entre 0 e 10 quando há evidência suficiente; "
+            "insuficiência exige nota nula. Não há nota final agregada."
+        ),
+    }
+
 
 class DimensionResult(Contract):
     dimension: Dimension

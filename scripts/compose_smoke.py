@@ -110,6 +110,22 @@ def create_insight(url: str, document_id: str, idempotency_key: str) -> dict[str
         return json.loads(response.read())
 
 
+def create_judge(url: str, source_run_id: str, idempotency_key: str) -> dict[str, object]:
+    request = urllib.request.Request(
+        url,
+        data=json.dumps({"source_run_id": source_run_id, "mode": "demo"}).encode(),
+        headers={
+            "Content-Type": "application/json",
+            "Idempotency-Key": idempotency_key,
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        if response.status != 202:
+            raise RuntimeError(f"A criação do judge respondeu HTTP {response.status}.")
+        return json.loads(response.read())
+
+
 def search_document(url: str, document_id: str, query: str) -> dict[str, object]:
     request = urllib.request.Request(
         url,
@@ -180,6 +196,48 @@ if run["status"] != "succeeded":
 result = json.loads(read_text(f"{api_url}/api/v1/runs/{run['id']}/result"))
 if len(result["report"]["dimensions"]) != 6:
     raise RuntimeError("O resultado persistido não contém as seis dimensões.")
+
+judge_key = f"compose-judge-{uuid4().hex}"
+judge = create_judge(f"{api_url}/api/v1/judge-runs", str(run["id"]), judge_key)
+judge_duplicate = create_judge(
+    f"{api_url}/api/v1/judge-runs", str(run["id"]), judge_key
+)
+if judge_duplicate["id"] != judge["id"]:
+    raise RuntimeError("A submissão idempotente criou judges diferentes.")
+
+for _ in range(40):
+    judge = json.loads(read_text(f"{api_url}/api/v1/judge-runs/{judge['id']}"))
+    if judge["status"] not in {"queued", "running"}:
+        break
+    time.sleep(0.25)
+if judge["status"] != "succeeded":
+    raise RuntimeError(
+        "O worker encerrou o judge com estado "
+        f"{judge['status']}: {judge.get('error_code')} - {judge.get('error_message')}"
+    )
+
+judge_result = json.loads(
+    read_text(f"{api_url}/api/v1/judge-runs/{judge['id']}/result")
+)
+if judge_result["report"].get("source_run_id") != run["id"]:
+    raise RuntimeError("O judge não preservou a referência ao parecer fonte.")
+if judge_result["report"].get("simulated") is not True:
+    raise RuntimeError("O judge demo não foi identificado como simulação.")
+if judge_result.get("source_report") != result.get("report"):
+    raise RuntimeError("O judge não preservou o snapshot do parecer fonte.")
+source_evidence = judge_result.get("source_evidence", {})
+cited_evidence_ids = {
+    evidence_id
+    for dimension in result["report"]["dimensions"]
+    for evidence_id in dimension["evidence_ids"]
+}
+frozen_evidence_ids = {
+    item["unit_id"] for item in source_evidence.get("items", [])
+}
+if frozen_evidence_ids != cited_evidence_ids:
+    raise RuntimeError("O judge não congelou exatamente as evidências citadas pelo parecer.")
+if not all(item.get("text") for item in source_evidence.get("items", [])):
+    raise RuntimeError("O snapshot de evidências do judge perdeu o texto citado.")
 
 insight_key = f"compose-insight-{uuid4().hex}"
 insight = create_insight(

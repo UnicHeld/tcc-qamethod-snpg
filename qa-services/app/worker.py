@@ -5,12 +5,14 @@ from threading import Event
 from app.adapters.fastembed_text import FastEmbedTextEmbedder
 from app.adapters.postgres_documents import PostgresDocumentRepository
 from app.adapters.postgres_insights import PostgresInsightRunRepository
+from app.adapters.postgres_judges import PostgresJudgeRunRepository
 from app.adapters.postgres_runs import PostgresRunRepository
 from app.adapters.postgres_search import PostgresSearchRepository
 from app.core.config import get_settings
 from app.core.migrations import apply_migrations
 from app.domain.search import EmbeddingProfile
 from app.services.insight_worker import InsightWorker
+from app.services.judge_worker import JudgeWorker
 from app.services.run_worker import RunWorker
 
 POLL_SECONDS = 1.0
@@ -55,18 +57,24 @@ def main() -> None:
             settings.embedding_cache_dir,
         ),
     )
+    judge_worker = JudgeWorker(
+        PostgresJudgeRunRepository(settings.database_url), settings
+    )
     interrupted_count = worker.reconcile_interrupted()
     interrupted_insights = insight_worker.reconcile_interrupted()
+    interrupted_judges = judge_worker.reconcile_interrupted()
     logging.info(
-        "worker_started interrupted_runs=%s interrupted_insights=%s",
+        "worker_started interrupted_runs=%s interrupted_insights=%s interrupted_judges=%s",
         interrupted_count,
         interrupted_insights,
+        interrupted_judges,
     )
 
     while not stop_event.is_set():
         evaluation_processed = worker.run_once()
         insight_processed = insight_worker.run_once()
-        if not evaluation_processed and not insight_processed:
+        judge_processed = judge_worker.run_once()
+        if not evaluation_processed and not insight_processed and not judge_processed:
             stop_event.wait(POLL_SECONDS)
     logging.info("worker_stopped")
 

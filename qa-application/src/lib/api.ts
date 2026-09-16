@@ -15,6 +15,7 @@ export interface CapabilitiesResponse {
   max_upload_bytes: number;
   max_pages: number;
   capabilities: Capability[];
+  judge_capabilities: Capability[];
   retrieval_capabilities: RetrievalCapability[];
 }
 
@@ -165,6 +166,63 @@ export interface InsightResult {
   insight_id: string;
   evidence_package: EvidencePackageRecord;
   report: InsightReport;
+  result_markdown: string;
+}
+
+export interface JudgeRunRecord {
+  id: string;
+  source_run_id: string;
+  document_id: string;
+  mode: EvaluationMode;
+  provider: string;
+  model: string;
+  prompt_version: string;
+  status: RunStatus;
+  source_report_sha256: string;
+  usage_kind: 'simulated' | 'actual' | 'unknown' | null;
+  credential_slot: 'primary' | 'fallback' | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  error_code: string | null;
+  error_message: string | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+export interface JudgeFindingRecord {
+  id: string;
+  criterion: 'evidence_alignment' | 'internal_consistency' | 'rubric_conformance';
+  severity: 'info' | 'warning' | 'error';
+  dimension: EvaluationReport['dimensions'][number]['dimension'] | null;
+  explanation: string;
+  evidence_ids: string[];
+}
+
+export interface JudgeEvidencePackageRecord {
+  document_id: string;
+  revision_sha256: string;
+  source_report_sha256: string;
+  items: Array<{
+    unit_id: string;
+    page: number;
+    text: string;
+  }>;
+}
+
+export interface JudgeResult {
+  judge_run_id: string;
+  source_report: EvaluationReport;
+  source_evidence: JudgeEvidencePackageRecord;
+  report: {
+    source_run_id: string;
+    source_report_sha256: string;
+    revision_sha256: string;
+    simulated: boolean;
+    verdict: 'pass' | 'needs_human_review';
+    summary: string;
+    findings: JudgeFindingRecord[];
+  };
   result_markdown: string;
 }
 
@@ -376,4 +434,52 @@ export async function getInsightResult(
     throw await responseError(response);
   }
   return (await response.json()) as InsightResult;
+}
+
+export async function createJudgeRun(
+  sourceRunId: string,
+  mode: EvaluationMode,
+  confirmExternalProcessing: boolean,
+  idempotencyKey: string,
+): Promise<JudgeRunRecord> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/judge-runs`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Idempotency-Key': idempotencyKey,
+    },
+    body: JSON.stringify({
+      source_run_id: sourceRunId,
+      mode,
+      confirm_external_processing: confirmExternalProcessing,
+    }),
+  });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  return (await response.json()) as JudgeRunRecord;
+}
+
+export async function getJudgeRun(
+  judgeRunId: string,
+  signal?: AbortSignal,
+): Promise<JudgeRunRecord> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/judge-runs/${judgeRunId}`, { signal });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  return (await response.json()) as JudgeRunRecord;
+}
+
+export async function getJudgeResult(
+  judgeRunId: string,
+  signal?: AbortSignal,
+): Promise<JudgeResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/judge-runs/${judgeRunId}/result`, {
+    signal,
+  });
+  if (!response.ok) {
+    throw await responseError(response);
+  }
+  return (await response.json()) as JudgeResult;
 }

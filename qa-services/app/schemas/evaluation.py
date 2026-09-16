@@ -79,4 +79,5 @@ class CapabilitiesResponse(BaseModel):
     max_upload_bytes: int = Field(gt=0)
     max_pages: int = Field(gt=0)
     capabilities: list[Capability]
+    judge_capabilities: list[Capability]
     retrieval_capabilities: list[RetrievalCapability]

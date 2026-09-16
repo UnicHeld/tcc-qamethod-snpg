@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import Settings, get_settings
-from app.routers import documents, evaluation, insights, runs, search
+from app.routers import documents, evaluation, insights, judges, runs, search
 from app.schemas.evaluation import (
     CapabilitiesResponse,
     Capability,
@@ -29,6 +29,9 @@ def create_app() -> FastAPI:
     application.include_router(search.router, prefix="/api/v1/search", tags=["search"])
     application.include_router(
         insights.router, prefix="/api/v1/insights", tags=["insights"]
+    )
+    application.include_router(
+        judges.router, prefix="/api/v1/judge-runs", tags=["judge-runs"]
     )
 
     @application.get("/health")
@@ -64,6 +67,25 @@ def create_app() -> FastAPI:
                     reason=unavailable_reason,
                     provider="google-gemini",
                     model=current_settings.gemini_model,
+                    requires_external_confirmation=True,
+                ),
+            ],
+            judge_capabilities=[
+                Capability(
+                    mode=EvaluationMode.DEMO,
+                    label="Simulado — validação técnica sem inferência LLM",
+                    available=True,
+                    provider="local",
+                    model="deterministic-judge-demo-v1",
+                    requires_external_confirmation=False,
+                ),
+                Capability(
+                    mode=EvaluationMode.REAL,
+                    label="LLM as judge — inferência externa autorizada",
+                    available=current_settings.judge_real_mode_unavailable_reason is None,
+                    reason=current_settings.judge_real_mode_unavailable_reason,
+                    provider="google-gemini",
+                    model=current_settings.gemini_judge_model or "não configurado",
                     requires_external_confirmation=True,
                 ),
             ],

@@ -11,18 +11,24 @@ import {
   DocumentRecord,
   DocumentPageRecord,
   EvaluationMode,
+  JudgeResult,
+  JudgeRunRecord,
   RunRecord,
   RunResult,
+  createJudgeRun,
   createDocument,
   createRun,
   getCapabilities,
   getDocument,
   getDocumentPages,
+  getJudgeResult,
+  getJudgeRun,
   getRun,
   getRunResult,
   listDocuments,
   listRuns,
 } from '../lib/api';
+import { downloadJudgeJson, downloadJudgeMarkdown } from '../lib/judgeExport';
 import { downloadRunJson, downloadRunMarkdown } from '../lib/runExport';
 
 type Activity = 'idle' | 'uploading' | 'waiting';
@@ -110,10 +116,17 @@ export default function Evaluation() {
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [comparisonError, setComparisonError] = useState<string | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [judgeRun, setJudgeRun] = useState<JudgeRunRecord | null>(null);
+  const [judgeResult, setJudgeResult] = useState<JudgeResult | null>(null);
+  const [judgeError, setJudgeError] = useState<string | null>(null);
+  const [judgeBusy, setJudgeBusy] = useState(false);
+  const [judgeMode, setJudgeMode] = useState<EvaluationMode>('demo');
+  const [confirmJudgeExternal, setConfirmJudgeExternal] = useState(false);
   const [activity, setActivity] = useState<Activity>('idle');
   const [error, setError] = useState<string | null>(null);
   const submissionKey = useRef(newIdempotencyKey());
   const retryIntent = useRef({ sourceRunId: '', key: '' });
+  const judgeSubmissionKey = useRef(newIdempotencyKey());
 
   useEffect(() => {
     const controller = new AbortController();
@@ -168,6 +181,9 @@ export default function Evaluation() {
         setDocumentRecord(null);
         setDocumentPages([]);
         setResult(null);
+        setJudgeRun(null);
+        setJudgeResult(null);
+        setJudgeError(null);
       }
       try {
         const persistedRun = await getRun(requestedRunId, controller.signal);
@@ -290,6 +306,15 @@ export default function Evaluation() {
       !isBusy &&
       (run.mode === 'demo' || (selectedCapability?.available && confirmExternal)),
   );
+  const selectedJudgeCapability = configuration?.judge_capabilities.find(
+    (capability) => capability.mode === judgeMode,
+  );
+  const canRunJudge = Boolean(
+    run?.status === 'succeeded' &&
+      selectedJudgeCapability?.available &&
+      !judgeBusy &&
+      (judgeMode === 'demo' || confirmJudgeExternal),
+  );
   const documentsById = new Map(
     recentDocuments.map((recentDocument) => [recentDocument.id, recentDocument]),
   );
@@ -307,6 +332,11 @@ export default function Evaluation() {
     setDocumentPages([]);
     setRun(null);
     setResult(null);
+    setJudgeRun(null);
+    setJudgeResult(null);
+    setJudgeError(null);
+    setConfirmJudgeExternal(false);
+    judgeSubmissionKey.current = newIdempotencyKey();
     setError(null);
     setActivity('idle');
   }
@@ -376,6 +406,45 @@ export default function Evaluation() {
       const message = requestError instanceof Error ? requestError.message : 'Falha desconhecida.';
       setError(message);
       setActivity('idle');
+    }
+  }
+
+  async function runJudge(): Promise<void> {
+    if (!run || !canRunJudge) {
+      return;
+    }
+
+    setJudgeBusy(true);
+    setJudgeError(null);
+    setJudgeResult(null);
+    try {
+      let current = await createJudgeRun(
+        run.id,
+        judgeMode,
+        confirmJudgeExternal,
+        judgeSubmissionKey.current,
+      );
+      setJudgeRun(current);
+      for (
+        let attempt = 0;
+        attempt < 40 && (current.status === 'queued' || current.status === 'running');
+        attempt += 1
+      ) {
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        current = await getJudgeRun(current.id);
+        setJudgeRun(current);
+      }
+      if (current.status !== 'succeeded') {
+        throw new Error(current.error_message ?? 'O judge não foi concluído.');
+      }
+      setJudgeResult(await getJudgeResult(current.id));
+      judgeSubmissionKey.current = newIdempotencyKey();
+      setConfirmJudgeExternal(false);
+    } catch (requestError: unknown) {
+      const message = requestError instanceof Error ? requestError.message : 'Falha desconhecida.';
+      setJudgeError(message);
+    } finally {
+      setJudgeBusy(false);
     }
   }
 
@@ -664,6 +733,142 @@ export default function Evaluation() {
                     <div className="result-markdown">
                       <ReactMarkdown>{result.result_markdown}</ReactMarkdown>
                     </div>
+                    <section
+                      aria-labelledby="judge-title"
+                      className="rounded-xl border border-stone-300 bg-stone-50 p-4 print:hidden"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-bold" id="judge-title">
+                            LLM as judge
+                          </h3>
+                          <p className="mt-1 text-sm text-stone-600">
+                            Congela este parecer e as evidências citadas. O relatório de auditoria é
+                            separado, não corrige o original e não substitui revisão humana.
+                          </p>
+                        </div>
+                      </div>
+
+                      <fieldset className="mt-4" disabled={judgeBusy}>
+                        <legend className="text-sm font-semibold">Modo do judge</legend>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                          {configuration?.judge_capabilities.map((capability) => (
+                            <label
+                              className="flex gap-2 rounded-lg border border-stone-300 bg-white p-3 text-sm has-[:checked]:border-red-700 has-[:checked]:bg-red-50 has-[:disabled]:opacity-60"
+                              key={capability.mode}
+                            >
+                              <input
+                                checked={judgeMode === capability.mode}
+                                className="mt-1 accent-red-800"
+                                disabled={!capability.available}
+                                name="judge-mode"
+                                onChange={() => {
+                                  setJudgeMode(capability.mode);
+                                  setConfirmJudgeExternal(false);
+                                  setJudgeRun(null);
+                                  setJudgeResult(null);
+                                  setJudgeError(null);
+                                  judgeSubmissionKey.current = newIdempotencyKey();
+                                }}
+                                type="radio"
+                              />
+                              <span>
+                                <span className="block font-semibold">{capability.label}</span>
+                                <span className="block text-xs text-stone-500">
+                                  {capability.provider} · {capability.model}
+                                </span>
+                                {capability.reason ? (
+                                  <span className="mt-1 block text-xs text-amber-800">
+                                    Indisponível: {capability.reason}
+                                  </span>
+                                ) : null}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+
+                      {judgeMode === 'real' ? (
+                        <label className="mt-3 flex gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
+                          <input
+                            checked={confirmJudgeExternal}
+                            className="mt-1 accent-red-800"
+                            disabled={judgeBusy}
+                            onChange={(event) => setConfirmJudgeExternal(event.target.checked)}
+                            type="checkbox"
+                          />
+                          <span>
+                            Autorizo o envio do parecer congelado e somente dos trechos citados ao
+                            modelo externo configurado para o judge.
+                          </span>
+                        </label>
+                      ) : null}
+
+                      <button
+                        className="mt-4 rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-400"
+                        disabled={!canRunJudge}
+                        onClick={() => void runJudge()}
+                        type="button"
+                      >
+                        {judgeBusy
+                          ? 'Executando judge…'
+                          : judgeMode === 'real'
+                            ? 'Executar LLM as judge'
+                            : 'Executar judge demo'}
+                      </button>
+
+                      {judgeRun ? (
+                        <p className="mt-3 text-sm" role="status">
+                          Judge {judgeRun.id.slice(0, 8)}: {statusLabels[judgeRun.status]}.
+                        </p>
+                      ) : null}
+                      {judgeError ? (
+                        <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-900" role="alert">
+                          {judgeError}
+                        </p>
+                      ) : null}
+                      {judgeResult && judgeRun ? (
+                        <div className="mt-4 space-y-4">
+                          <div
+                            className={`rounded-lg border p-3 text-sm ${
+                              judgeResult.report.simulated
+                                ? 'border-amber-300 bg-amber-50 text-amber-950'
+                                : 'border-emerald-300 bg-emerald-50 text-emerald-950'
+                            }`}
+                          >
+                            <p className="font-bold">
+                              {judgeResult.report.simulated
+                                ? 'Simulado — judge sem inferência LLM'
+                                : 'LLM as judge — inferência externa autorizada'}
+                            </p>
+                            <p className="mt-1">{judgeResult.report.summary}</p>
+                            <p className="mt-1 text-xs">
+                              {judgeRun.provider} · {judgeRun.model} ·{' '}
+                              {judgeResult.source_evidence.items.length} evidência(s) congelada(s)
+                            </p>
+                          </div>
+                          <div className="result-markdown">
+                            <ReactMarkdown>{judgeResult.result_markdown}</ReactMarkdown>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-700"
+                              onClick={() => downloadJudgeJson(judgeRun, judgeResult)}
+                              type="button"
+                            >
+                              Exportar judge JSON
+                            </button>
+                            <button
+                              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-700"
+                              onClick={() => downloadJudgeMarkdown(judgeRun, judgeResult)}
+                              type="button"
+                            >
+                              Exportar judge Markdown
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </section>
                   </>
                 ) : null}
 
