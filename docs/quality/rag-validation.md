@@ -5,24 +5,45 @@
 
 ## Objetivo
 
-Medir a contribuição do pipeline RAG na qualidade das avaliações geradas, comparando
-resultados com e sem recuperação de contexto.
+Medir a relevância da recuperação e a fundamentação, precisão e utilidade das respostas de
+Question Answering. A [ADR de continuidade](../decisions/restore-question-answering-focus.md)
+prioriza consultas e sínteses sobre o acervo para apoiar análises de PPGs.
+
+O avaliador direto atual não usa RAG. Avaliar notas e justificativas nas seis dimensões ou os
+achados do judge é uma tarefa separada, descrita na [rubrica do avaliador](evaluation-method.md).
 
 ## Evidência histórica
+
+O [registro do TCC de 2024](../history/tcc-2024.md) descreve o experimento com 150 documentos do
+PPGEGC, a divisão por área e a análise manual das respostas. Sua acurácia de
+recuperação/classificação não é uma medida de correção geral das respostas nem das notas do
+avaliador. Os resultados pertencem ao estudo e não foram reproduzidos no pipeline atual.
 
 Os notebooks em `notebooks/rag-validation/` e `notebooks/statistic/` são preservados apenas como
 registro exploratório. Eles não serão migrados, corrigidos ou reexecutados e seus resultados não
 devem ser tratados como evidência da implementação atual.
 
-Métricas utilizadas:
-- **Precision@K** — fração de chunks recuperados que são relevantes.
-- **Recall@K** — fração de chunks relevantes que foram recuperados.
-- **Coerência da avaliação** — consistência entre avaliações de um mesmo documento.
+## Métricas para a evolução do QA
+
+As métricas abaixo orientam novos experimentos; não são resultados já medidos nem uma descrição
+das métricas históricas do TCC:
+
+- **Precision@K e Recall@K:** relevância dos trabalhos e trechos retornados, conforme referência anotada.
+- **Respeito aos filtros:** inclusão e exclusão corretas por metadados acadêmicos.
+- **Fundamentação e correção:** suporte das afirmações pelas fontes e validade das citações,
+  com revisão humana; resolver um ID não basta para comprovar suporte semântico.
+- **Utilidade da síntese:** capacidade de responder à pergunta e apoiar a análise do PPG,
+  deixando claros os limites da amostra e os casos de insuficiência.
+
+Conjuntos, protocolos e limiares devem ser definidos na especificação do entregável antes de
+alegar qualidade medida. As baselines por documento abaixo continuam como evidência funcional.
 
 ## Conjunto de referência
 
-Os documentos de referência usados para indexação e validação estão em `data/`.
-Não versionar documentos com dados pessoais ou restrições de uso.
+Novos experimentos exigem corpus autorizado, documentos/revisões identificados e consultas
+anotadas com filtros e evidências esperadas. A disponibilidade e a autorização da coleção
+histórica não são presumidas por esta documentação. Dados locais podem usar `data/`, respeitando
+as regras de não versionar material sensível ou com restrições de uso.
 
 ## Validação atual e futura
 

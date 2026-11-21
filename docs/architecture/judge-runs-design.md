@@ -4,6 +4,10 @@
 - **Última atualização:** 2026-09-16
 - **Especificação relacionada:** [judge separado](../specs/judge-runs.md)
 
+O judge é um serviço complementar pós-TCC conforme a
+[ADR de continuidade do Question Answering](../decisions/restore-question-answering-focus.md).
+Seu contrato audita pareceres de avaliação individual, não respostas de QA sobre o acervo.
+
 ## Contexto
 
 Os pareceres persistidos já podem ser reabertos e comparados, mas a comparação apenas apresenta

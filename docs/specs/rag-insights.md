@@ -6,6 +6,10 @@
 - **System design:** [insights RAG rastreáveis](../architecture/rag-insights-design.md)
 - **Decisões relacionadas:** [recuperação vetorial local](../decisions/local-vector-retrieval.md)
 
+Este contrato cobre o EV-03 pós-TCC e continua limitado a um documento. A
+[ADR de continuidade](../decisions/restore-question-answering-focus.md) estabelece consulta e
+síntese do acervo como direção futura; sua aceitação não modifica os requisitos deste incremento.
+
 ## Contexto e problema
 
 EV-01 e EV-02 permitem localizar evidências, porém o usuário ainda precisa interpretar os hits sem

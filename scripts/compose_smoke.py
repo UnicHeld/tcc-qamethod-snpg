@@ -2,6 +2,8 @@ import json
 import os
 import time
 import urllib.request
+from urllib.error import HTTPError
+from urllib.parse import quote
 from uuid import uuid4
 
 
@@ -50,9 +52,11 @@ def synthetic_pdf(text: str) -> bytes:
     return bytes(content)
 
 
-def create_document(url: str) -> dict[str, object]:
+def create_document(
+    url: str, text: str = "Documento sintetico para smoke do worker persistente."
+) -> dict[str, object]:
     boundary = f"qa-method-{uuid4().hex}"
-    pdf = synthetic_pdf("Documento sintetico para smoke do worker persistente.")
+    pdf = synthetic_pdf(text)
     body = (
         f"--{boundary}\r\n"
         'Content-Disposition: form-data; name="file"; filename="smoke.pdf"\r\n'
@@ -141,6 +145,41 @@ def search_document(url: str, document_id: str, query: str) -> dict[str, object]
         return json.loads(response.read())
 
 
+def save_catalog_entry(
+    api_url: str, document_id: str, metadata: dict[str, object]
+) -> dict[str, object]:
+    url = f"{api_url}/api/v1/catalog/documents/{document_id}"
+    try:
+        previous = json.loads(read_text(url))
+        revision = previous["metadata_revision"]
+    except HTTPError as error:
+        if error.code != 404:
+            raise
+        revision = 0
+    request = urllib.request.Request(
+        url,
+        data=json.dumps({"metadata": metadata, "expected_revision": revision}).encode(),
+        headers={"Content-Type": "application/json"},
+        method="PUT",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return json.loads(response.read())
+
+
+def search_catalog(api_url: str, program: str, **filters: object) -> dict[str, object]:
+    request = urllib.request.Request(
+        f"{api_url}/api/v1/catalog/search",
+        data=json.dumps({
+            "query": "worker persistente", "filters": {"program": program, **filters},
+            "limit": 10,
+        }).encode(),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return json.loads(response.read())
+
+
 api_url = os.environ["QA_API_URL"].rstrip("/")
 web_url = os.environ["QA_WEB_URL"].rstrip("/")
 
@@ -176,6 +215,47 @@ if len(search.get("hits", [])) != 1 or search["hits"][0].get("page") != 1:
     raise RuntimeError("A busca lexical não recuperou a unidade anotada.")
 if "worker persistente" not in search["hits"][0].get("snippet", ""):
     raise RuntimeError("A busca lexical não preservou a evidência no trecho.")
+
+program = f"smoke-catalog-{uuid4().hex}"
+other_document = create_document(
+    f"{api_url}/api/v1/documents",
+    f"Outro trabalho sintetico sobre worker persistente {program}.",
+)
+for source, year, area in ((document, 2024, "Gestão"), (other_document, 2023, "Engenharia")):
+    save_catalog_entry(api_url, str(source["id"]), {
+        "title": f"Trabalho sintético {year}", "publication_year": year,
+        "area": area, "advisor": "Orientador sintético", "institution": "Universidade sintética",
+        "program": program, "document_type": "dissertation",
+    })
+catalog_page = json.loads(read_text(
+    f"{api_url}/api/v1/catalog/documents?program={program}&limit=1&offset=1"
+))
+if catalog_page["total"] != 2 or len(catalog_page["entries"]) != 1:
+    raise RuntimeError("A listagem do acervo não preservou paginação e total.")
+collection_search = search_catalog(api_url, program)
+if collection_search["total_documents"] != 2:
+    raise RuntimeError("A busca no acervo não recuperou os dois trabalhos.")
+filtered_search = search_catalog(api_url, program, year_from=2024, advisor="orientador sintético")
+if filtered_search["total_documents"] != 1:
+    raise RuntimeError("O filtro acadêmico não restringiu a busca no acervo.")
+hit = filtered_search["hits"][0]
+if hit["entry"]["document"]["id"] != document["id"]:
+    raise RuntimeError("O filtro recuperou um documento diferente do esperado.")
+unit_id = quote(hit["unit_id"], safe="")
+evidence = json.loads(read_text(
+    f"{api_url}/api/v1/catalog/documents/{document['id']}/evidence/{unit_id}"
+))
+if evidence["entry"]["document"]["sha256"] != document["sha256"] or evidence["page"] != 1:
+    raise RuntimeError("A evidência do acervo perdeu a revisão ou a página de origem.")
+if "worker persistente" not in evidence["text"]:
+    raise RuntimeError("A evidência do acervo perdeu o texto da fonte.")
+try:
+    read_text(f"{api_url}/api/v1/catalog/documents/{other_document['id']}/evidence/{unit_id}")
+except HTTPError as error:
+    if error.code != 404:
+        raise
+else:
+    raise RuntimeError("A abertura aceitou uma unidade de outro documento.")
 idempotency_key = f"compose-smoke-{uuid4().hex}"
 run = create_run(f"{api_url}/api/v1/runs", str(document["id"]), idempotency_key)
 duplicate = create_run(f"{api_url}/api/v1/runs", str(document["id"]), idempotency_key)
@@ -285,5 +365,9 @@ if '<div id="root"></div>' not in search_route:
 insights_route = read_text(f"{web_url}/insights")
 if '<div id="root"></div>' not in insights_route:
     raise RuntimeError("O fallback de rotas da SPA não respondeu em /insights.")
+
+collection_route = read_text(f"{web_url}/collection")
+if '<div id="root"></div>' not in collection_route:
+    raise RuntimeError("O fallback de rotas da SPA não respondeu em /collection.")
 
 print("Smoke test dos contêineres concluído com sucesso.")

@@ -12,8 +12,18 @@
   [failover de credenciais Gemini](../decisions/gemini-credential-failover.md).
 - Acompanhamento: [checklist da recuperação](../operations/prototype-recovery-checklist.md).
 - Validação reproduzível: [roteiro de testes](../operations/prototype-recovery-test-plan.md).
-- Prioridade confirmada: melhorar o projeto existente, testar capacidades e preparar documentação
+- Prioridade da recuperação pós-TCC: melhorar o projeto existente, testar capacidades e preparar documentação
   para registro de software. SaaS fica para outra etapa.
+
+## Enquadramento após a revisão de 2026-11-20
+
+Este roteiro registra as entregas da recuperação pós-TCC e suas pendências. A
+[ADR de continuidade do Question Answering](../decisions/restore-question-answering-focus.md)
+substitui sua prioridade de produto: o foco passa a ser consulta e síntese sobre o acervo,
+aproveitando a infraestrutura recuperada. Avaliação individual e judge são complementares.
+Requisitos, IDs, evidências e limitações abaixo permanecem referentes à fatia de recuperação;
+não constituem uma especificação de consulta entre documentos. Os próximos entregáveis de
+produto estão definidos na ADR e exigem desenho e especificação próprios antes de implementar.
 
 ## Contexto e problema
 
@@ -27,7 +37,7 @@ Instalar todas as dependências antigas da raiz não é um plano suficiente de r
 necessário separar ambiente do serviço, corrigir contratos/erros, substituir integrações obsoletas
 e validar uma fatia funcional antes de expandir recursos.
 
-## Objetivo
+## Objetivo da recuperação pós-TCC
 
 Entregar um laboratório local de análise documental que outra pessoa consiga instalar, abrir e
 demonstrar com dados autorizados, sem contratar serviços. Com credencial e quota gratuita disponíveis,

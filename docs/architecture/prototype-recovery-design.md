@@ -9,7 +9,15 @@
   [persistência PostgreSQL](../decisions/postgresql-local-persistence.md) e do
   [failover de credenciais Gemini](../decisions/gemini-credential-failover.md).
 
-## Contexto
+## Enquadramento pós-TCC
+
+Este desenho registra a recuperação de 2026 e as capacidades implementadas a partir dela.
+A [ADR de continuidade do Question Answering](../decisions/restore-question-answering-focus.md),
+aceita em 2026-11-20, substitui a prioridade centrada em pareceres pela consulta e síntese do acervo.
+Os componentes recuperados são reaproveitados; seus contratos por documento não implementam
+automaticamente a direção nova. Os objetivos abaixo pertencem à recuperação pós-TCC.
+
+## Contexto da recuperação
 
 Recuperar a execução local, organizar os componentes existentes e transformar a interface em um
 laboratório demonstrável de inteligência documental. O usuário priorizou recursos gratuitos e
@@ -24,7 +32,7 @@ ainda não foram confirmados; esses recursos devem permanecer opcionais.
 ### Objetivos
 
 - Inicializar API/interface sem credenciais, separando demonstração de inferência real.
-- Preservar o método de seis dimensões e recuperar avaliação real com SDK/modelo suportados.
+- Preservar a rubrica de seis dimensões do avaliador e recuperar avaliação real com SDK/modelo suportados.
 - Desacoplar leitura documental, recuperação, avaliação e judge em módulos testáveis.
 - Inspecionar evidências, resultados e experimentos por uma interface consistente.
 - Guardar execuções reproduzíveis e preparar documentação técnica da versão do software.

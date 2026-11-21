@@ -1,9 +1,15 @@
-# Método de avaliação
+# Rubrica do serviço complementar de avaliação individual
+
+Esta rubrica descreve uma capacidade do código atual, já presente no protótipo, e não as seis
+etapas do método de Question Answering do [TCC de 2024](../history/tcc-2024.md).
+A [ADR de continuidade](../decisions/restore-question-answering-focus.md) mantém avaliação e
+judge como serviços complementares à consulta do acervo.
 
 ## Objetivo
 
 Gerar uma análise crítica automatizada de dissertações de mestrado e teses de doutorado do SNPG,
-estruturada nas dimensões exigidas pelos formulários de avaliação de banca.
+estruturada na rubrica de seis dimensões implementada pelo avaliador. Essa implementação não
+comprova que a rubrica seja um instrumento oficial de banca ou um método academicamente validado.
 
 ## Dimensões e critérios
 
@@ -16,7 +22,8 @@ estruturada nas dimensões exigidas pelos formulários de avaliação de banca.
 | Estrutura | Organização, progressão lógica, completude das seções |
 | Interdisciplinaridade | Diálogo com outras áreas; integração de perspectivas |
 
-Cada dimensão recebe nota de 0 a 10. O método não produz nota final única.
+Cada dimensão recebe nota de 0 a 10 quando há suporte, ou nota nula por insuficiência de
+evidências. O serviço não produz nota final única.
 
 ## Prompt do avaliador
 
@@ -40,8 +47,9 @@ O Markdown exibido é derivado do relatório validado e formata a nota em negrit
 canônica do resultado. A validade estrutural de um ID não comprova que a evidência sustenta a
 justificativa — essa qualidade deve ser aferida com corpus e revisão humana.
 
-Alterações no prompt devem ser validadas com o conjunto de documentos de referência antes de
-serem integradas. Ver `docs/quality/rag-validation.md`.
+Alterações no prompt devem ser validadas com um conjunto de documentos de referência e revisão
+humana antes de serem integradas. A validação de notas e justificativas é separada da
+[validação da recuperação e das respostas de QA](rag-validation.md).
 
 ## Limitações conhecidas
 

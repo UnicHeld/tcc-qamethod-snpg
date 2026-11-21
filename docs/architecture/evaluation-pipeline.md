@@ -4,6 +4,11 @@
   separado e não altera este avaliador.
 - Contrato provisório: [roteiro de recuperação](../specs/prototype-recovery.md#contrato-de-retomada-f1).
 
+Este documento descreve o serviço complementar de avaliação individual. Ele já existia no
+protótipo de 2024, mas não representa o método completo de Question Answering sobre uma coleção.
+Seu lugar na direção atual está definido na
+[ADR de continuidade](../decisions/restore-question-answering-focus.md).
+
 ## Fluxo ponta a ponta
 
 ```text
