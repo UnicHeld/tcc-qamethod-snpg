@@ -12,9 +12,12 @@ export default function Navbar() {
         <NavLink className="font-bold tracking-tight" to="/">
           QA Method <span className="font-normal text-red-400">· Laboratório</span>
         </NavLink>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <NavLink className={linkClassName} end to="/">
             Início
+          </NavLink>
+          <NavLink className={linkClassName} to="/collection">
+            Acervo
           </NavLink>
           <NavLink className={linkClassName} to="/evaluation">
             Avaliação

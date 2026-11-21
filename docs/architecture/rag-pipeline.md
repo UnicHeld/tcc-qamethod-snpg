@@ -6,17 +6,23 @@
 
 ## Intenção
 
-RAG (Retrieval-Augmented Generation) usa unidades verificáveis para responder uma pergunta única
-sem alterar a avaliação direta. O pacote recuperado é congelado antes da geração e cada citação é
-validada contra ele.
+RAG (Retrieval-Augmented Generation) serve à resposta a perguntas com contexto recuperado.
+A [ADR de continuidade](../decisions/restore-question-answering-focus.md) orienta sua evolução
+para consulta e síntese de um acervo, preservando o objetivo do [TCC](../history/tcc-2024.md).
+
+No fluxo RAG atual, a recuperação para geração é restrita a um documento. O insight responde uma pergunta única
+sem alterar a avaliação direta; o pacote recuperado é congelado antes da geração e cada citação
+é validada contra ele. O [catálogo](academic-catalog-design.md) oferece busca lexical entre
+documentos com filtros acadêmicos, sem geração. Respostas e recuperação vetorial entre documentos
+ainda não estão implementadas.
 
 ```text
-Ativo: unidades versionadas → lexical ou embedding local/pgvector → hits verificáveis
+Ativo: unidades de um documento → lexical ou embedding local/pgvector → hits verificáveis
                                                                   ↓
        pergunta → run assíncrono → pacote congelado E1..En → demo/Gemini → resposta citável
 ```
 
-## Código existente e limites
+## Código legado e limites
 
 `services/qdrant_manager.py` e `services/embedder.py` preservam um experimento anterior com Qdrant
 e embeddings OpenAI. Eles documentam a POC, mas não serão reativados no pipeline planejado. Esses
@@ -28,8 +34,9 @@ módulos:
 - usam operações e configuração que precisam ser revistas antes de qualquer ativação.
 
 Os notebooks antigos permanecem apenas como arquivo histórico da POC. Não serão migrados ou
-reexecutados e seus resultados não são evidência do pipeline atual. A validação futura de RAG será
-recriada com fixtures e testes automatizados no componente responsável.
+reexecutados e seus resultados não são evidência do pipeline atual. A
+[validação de RAG](../quality/rag-validation.md) separa resultados do estudo, testes funcionais e
+avaliação futura de recuperação e respostas.
 
 ## Contrato atual
 

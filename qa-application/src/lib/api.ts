@@ -39,6 +39,81 @@ export interface DocumentRecord {
   created_at: string;
 }
 
+export type AcademicDocumentType = 'thesis' | 'dissertation' | 'other';
+
+export interface AcademicMetadata {
+  title: string;
+  document_type: AcademicDocumentType | null;
+  publication_year: number | null;
+  area: string | null;
+  institution: string | null;
+  program: string | null;
+  author: string | null;
+  advisor: string | null;
+  coadvisor: string | null;
+  source_url: string | null;
+}
+
+export interface CatalogEntry {
+  document: DocumentRecord;
+  metadata: AcademicMetadata;
+  metadata_revision: number;
+  metadata_source: 'manual';
+  updated_at: string;
+}
+
+export interface CatalogFilters {
+  document_type?: AcademicDocumentType;
+  year_from?: number;
+  year_to?: number;
+  area?: string;
+  institution?: string;
+  program?: string;
+  author?: string;
+  advisor?: string;
+  coadvisor?: string;
+}
+
+export interface CatalogListResponse {
+  entries: CatalogEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface CatalogSearchHit {
+  entry: CatalogEntry;
+  unit_id: string;
+  page: number;
+  snippet: string;
+  score: number;
+}
+
+export interface CatalogSearchResponse {
+  query: string;
+  filters: CatalogFilters;
+  retrieval_mode: 'lexical';
+  hits: CatalogSearchHit[];
+  total_hits: number;
+  total_documents: number;
+  limit: number;
+  offset: number;
+}
+
+export interface CatalogEvidence {
+  entry: CatalogEntry;
+  unit_id: string;
+  page: number;
+  text: string;
+}
+
+export class CatalogApiError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = 'CatalogApiError';
+  }
+}
+
 export type PageExtractionStatus = 'extracted' | 'ocr_candidate' | 'no_text';
 
 export interface DocumentPageRecord {
@@ -482,4 +557,87 @@ export async function getJudgeResult(
     throw await responseError(response);
   }
   return (await response.json()) as JudgeResult;
+}
+
+async function catalogResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const error = await responseError(response);
+    throw new CatalogApiError(error.message, response.status);
+  }
+  return (await response.json()) as T;
+}
+
+export async function listCatalog(
+  filters: CatalogFilters = {},
+  offset = 0,
+  limit = 20,
+  signal?: AbortSignal,
+): Promise<CatalogListResponse> {
+  const parameters = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      parameters.set(key, String(value));
+    }
+  });
+  return catalogResponse<CatalogListResponse>(
+    await fetch(`${API_BASE_URL}/api/v1/catalog/documents?${parameters}`, { signal }),
+  );
+}
+
+export async function getCatalogEntry(
+  documentId: string,
+  signal?: AbortSignal,
+): Promise<CatalogEntry | null> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/catalog/documents/${encodeURIComponent(documentId)}`,
+    { signal },
+  );
+  if (response.status === 404) {
+    return null;
+  }
+  return catalogResponse<CatalogEntry>(response);
+}
+
+export async function saveCatalogEntry(
+  documentId: string,
+  metadata: AcademicMetadata,
+  expectedRevision: number,
+): Promise<CatalogEntry> {
+  return catalogResponse<CatalogEntry>(
+    await fetch(`${API_BASE_URL}/api/v1/catalog/documents/${encodeURIComponent(documentId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ metadata, expected_revision: expectedRevision }),
+    }),
+  );
+}
+
+export async function searchCatalog(
+  query: string,
+  filters: CatalogFilters,
+  offset = 0,
+  limit = 10,
+  signal?: AbortSignal,
+): Promise<CatalogSearchResponse> {
+  return catalogResponse<CatalogSearchResponse>(
+    await fetch(`${API_BASE_URL}/api/v1/catalog/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, filters, limit, offset }),
+      signal,
+    }),
+  );
+}
+
+export async function getCatalogEvidence(
+  documentId: string,
+  unitId: string,
+  signal?: AbortSignal,
+): Promise<CatalogEvidence> {
+  return catalogResponse<CatalogEvidence>(
+    await fetch(
+      `${API_BASE_URL}/api/v1/catalog/documents/${encodeURIComponent(documentId)}/evidence/${encodeURIComponent(unitId)}`,
+      { signal },
+    ),
+  );
 }

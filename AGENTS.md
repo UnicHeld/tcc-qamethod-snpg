@@ -1,15 +1,17 @@
 # TCC — QA Method SNPG
 
-Projeto de TCC da UFSC: método de avaliação de qualidade para o Sistema Nacional de
-Pós-Graduação (SNPG). O repositório preserva notebooks históricos da POC, contém um serviço FastAPI
-(`qa-services/`) que implementa avaliação direta e prepara RAG com PostgreSQL + pgvector, além de
-uma interface React (`qa-application/`).
+Projeto de TCC da UFSC: Question Answering sobre bases de teses e dissertações do Sistema Nacional
+de Pós-Graduação (SNPG), para apoiar análises de PPGs. A direção vigente preserva essa proposta
+com a infraestrutura pós-TCC; avaliação individual e judge são serviços complementares.
+O código atual usa FastAPI, React e PostgreSQL/pgvector. O catálogo oferece metadados manuais,
+filtros acadêmicos e busca lexical entre documentos. Busca vetorial e insights existentes são por
+documento; recuperação semântica da coleção e síntese entre trabalhos permanecem pendentes.
 
 ## Estrutura principal
 
 - `notebooks/`: arquivo histórico da POC; fora do produto, build, lint, testes e escopo de evolução.
-- `qa-services/`: API FastAPI com avaliação documental, persistência PostgreSQL, RAG planejado com
-  pgvector e integrações com LLMs.
+- `qa-services/`: API FastAPI com avaliação documental, persistência PostgreSQL, busca e insights
+  por documento, pgvector opcional e integrações com LLMs.
   - `app/core/`: configurações e dependências.
   - `app/routers/`: endpoints HTTP.
   - `app/services/`: lógica de domínio e integrações.
@@ -19,7 +21,11 @@ uma interface React (`qa-application/`).
 
 ## Documentação canônica
 
+- `docs/history/README.md`: separação entre o TCC de 2024 e a evolução pós-TCC.
+- `docs/decisions/restore-question-answering-focus.md`: direção vigente e continuidade do método original.
 - `docs/architecture/fundamental-concepts.md`: escopo, componentes e limites do sistema.
+- `docs/architecture/academic-catalog-design.md`: contratos e dados do acervo consultável.
+- `docs/specs/product-evolution.md`: entregáveis por complexidade e estado de implementação.
 - `docs/architecture/evaluation-pipeline.md`: fluxo ponta a ponta de um documento.
 - `docs/architecture/rag-pipeline.md`: indexação, recuperação e geração com PostgreSQL + pgvector.
 - `docs/operations/local-setup.md`: ambiente, variáveis e comandos.

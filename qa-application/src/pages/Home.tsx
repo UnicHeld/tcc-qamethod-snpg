@@ -12,11 +12,12 @@ export default function Home() {
             Laboratório local
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-            Avalie documentos com limites e evidências explícitos
+            Explore a produção acadêmica com fontes verificáveis
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            A retomada começa por PDF digital e um modo de demonstração sem credenciais. Recursos
-            futuros permanecem identificados como planejados até terem implementação verificável.
+            Cadastre teses e dissertações, combine assunto e filtros acadêmicos e abra as
+            evidências encontradas no acervo. Avaliação individual e insights por documento
+            continuam disponíveis como serviços complementares.
           </p>
         </header>
 
@@ -25,6 +26,13 @@ export default function Home() {
             Capacidades
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+            <ServiceCard
+              description="Cadastre PDFs e metadados acadêmicos, consulte diferentes trabalhos com filtros e abra o texto de cada evidência."
+              icon="📚"
+              link="/collection"
+              status="available"
+              title="Acervo de teses e dissertações"
+            />
             <ServiceCard
               description="Envie um PDF digital, escolha entre simulação e inferência autorizada e exporte o resultado."
               icon="📝"

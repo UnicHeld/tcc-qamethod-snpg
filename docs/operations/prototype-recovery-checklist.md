@@ -11,6 +11,16 @@ Este checklist é a visão rápida do progresso. Requisitos, critérios de aceit
 detalhadas permanecem canônicos na [especificação](../specs/prototype-recovery.md). Para repetir a
 validação, siga o [roteiro de testes](prototype-recovery-test-plan.md).
 
+## Direção após a revisão documental de 2026-11-20
+
+A [ADR de continuidade do Question Answering](../decisions/restore-question-answering-focus.md)
+prioriza encontrar trabalhos no acervo, sintetizar diferentes documentos e verificar a utilidade
+para análises de PPGs. A primeira entrega de [acervo consultável](../specs/academic-catalog.md)
+foi implementada com cadastro manual, filtros e recuperação lexical entre documentos. Síntese e
+validação com corpus real permanecem planejadas na [evolução do produto](../specs/product-evolution.md).
+A lista abaixo preserva a fotografia e as pendências da recuperação de
+setembro; a ordem histórica EV-04–EV-06 não define sozinha a próxima prioridade de produto.
+
 ## F0 — baseline e isolamento
 
 - [x] Estado inicial e riscos registrados no
@@ -209,7 +219,7 @@ e origem, sem LLM ou embedding.
   evidência e exportações passaram sem erros da aplicação ou violações detectadas pelo axe-core.
 - [ ] Executar teste real opt-in do insight com documento sintético autorizado.
 
-## Entregáveis seguintes
+## Pendências da sequência de recuperação pós-TCC
 
 - [ ] EV-04 — ampliar formatos conforme demanda: integração CSV/JSON ou OCR de PDF.
 - [ ] EV-05 — concluir qualidade semântica e revisão humana do judge; os modos demo e real opt-in

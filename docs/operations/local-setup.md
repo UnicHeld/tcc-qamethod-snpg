@@ -31,6 +31,24 @@ A classificação conservadora da extração por página fica disponível em
 `GET /api/v1/documents/{document_id}/pages`. `ocr_candidate` apenas indica imagem raster sem texto
 extraído; o perfil padrão não instala nem executa OCR.
 
+## Consultar o acervo acadêmico
+
+A tela `/collection` permite enviar um PDF sem avaliação, selecionar PDFs admitidos e cadastrar
+seus metadados. O documento entra na coleção após salvar o título e os demais campos conhecidos.
+Campos opcionais vazios permanecem desconhecidos; a origem é manual. A migração aditiva `0009`
+é aplicada junto das demais no início da API/worker; não exige recriar o banco.
+
+Consulte apenas os filtros para listar trabalhos, ou acrescente assunto para buscar evidências
+textuais entre eles. Filtros de texto usam o valor completo sem diferenciar maiúsculas/minúsculas;
+o intervalo de ano é inclusivo. Cada resultado abre o texto da unidade indicada, com página e SHA256.
+O PDF original, figuras e tabelas podem não estar disponíveis nessa visualização.
+
+Se ocorrer conflito de edição, use “Recarregar metadados atuais” antes de salvar novamente.
+Não há inferência externa nem indexação vetorial da coleção neste fluxo. Contratos e limites estão
+no [desenho do catálogo](../architecture/academic-catalog-design.md).
+
+### Busca e insights por documento
+
 A rota `POST /api/v1/search` pesquisa apenas as unidades do documento informado e devolve trechos
 com página e origem. Ela funciona no perfil padrão, não usa LLM ou embedding e está disponível na
 tela `http://127.0.0.1:5173/search` após ao menos um documento ser admitido.

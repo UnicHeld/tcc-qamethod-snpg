@@ -5,6 +5,10 @@
 - **Especificação relacionada:** [insights RAG rastreáveis](../specs/rag-insights.md)
 - **Decisões relacionadas:** [recuperação vetorial local](../decisions/local-vector-retrieval.md)
 
+Este desenho cobre o EV-03 pós-TCC, restrito a um documento. A
+[ADR de continuidade](../decisions/restore-question-answering-focus.md) orienta uma ampliação futura
+para o acervo; os não objetivos desta fatia não excluem essa capacidade da direção do projeto.
+
 ## Contexto
 
 As buscas lexical e vetorial recuperam trechos verificáveis de uma revisão persistida, mas ainda
@@ -32,10 +36,10 @@ avaliador. Não é chat e não altera o contrato de `EvaluationReport`.
 - Comprovar correção semântica, substituir revisão humana ou executar judge.
 - Persistir o PDF original ou publicar o serviço sem autenticação.
 
-## Estado atual
+## Estado anterior ao EV-03
 
 `POST /api/v1/search` devolve hits lexicais ou vetoriais com unidade, página, trecho e score. O
-worker atual processa somente `evaluation_runs`. PostgreSQL é a fonte de documentos, unidades,
+worker anterior ao incremento processa somente `evaluation_runs`. PostgreSQL é a fonte de documentos, unidades,
 runs e resultados; embeddings são derivados reconstruíveis.
 
 ## Desenho proposto

@@ -5,6 +5,10 @@
 - **Última atualização:** 2026-09-16
 - **System design:** [judge separado](../architecture/judge-runs-design.md)
 
+Este incremento pós-TCC permanece complementar conforme a
+[ADR de continuidade do Question Answering](../decisions/restore-question-answering-focus.md).
+Seu aceite não comprova qualidade das respostas nem consulta ao acervo do método original.
+
 ## Problema e objetivo
 
 A comparação atual mostra diferenças entre runs, mas não produz achados auditáveis. Este incremento
